@@ -1,0 +1,319 @@
+:root {
+    --color-primary: #ff7f50; /* Coral */
+    --color-secondary: #ffc800; /* Amber */
+    --color-complete: #3cb371; /* Medium Sea Green */
+    --color-partial: #ffd700; /* Gold */
+    --color-none: #add8e6; /* Light Blue */
+    --color-nothing: #e74c3c; /* Red */
+    --color-unmarked: #f0f0f0; /* Lighter Gray */
+    --color-background: #fdf5e6; /* Old Lace */
+    --color-text-dark: #4b0082; /* Indigo */
+    --color-text-light: #fff;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-background);
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2" fill="%23e6e6fa"/></svg>');
+    color: var(--color-text-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #fff;
+    padding: 2.5rem;
+    border-radius: 2rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 850px;
+    border: 5px solid var(--color-primary);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    font-size: 3rem;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px var(--color-secondary);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    opacity: 0.9;
+}
+
+.stat-card p {
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 0;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.calendar-header button {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: transform 0.2s;
+}
+
+.calendar-header button:hover {
+    background-color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+.calendar-month-year {
+    font-size: 1.75rem;
+    font-weight: bold;
+}
+
+.calendar-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1.5rem;
+}
+
+.week-card {
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 2px solid transparent;
+}
+
+.week-card:hover {
+    transform: translateY(-8px) rotate(2deg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.week-card.active {
+    border-color: var(--color-primary);
+}
+
+.week-card h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.week-card p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Status-specific styles */
+.week-card.status-complete {
+    background-color: var(--color-complete);
+    color: var(--color-text-light);
+    border: 4px solid #fff;
+    box-shadow: 0 0 15px var(--color-complete);
+}
+
+.week-card.status-partial {
+    background-color: var(--color-partial);
+    color: var(--color-text-dark);
+    border: 4px solid var(--color-text-dark);
+}
+
+.week-card.status-none {
+    background-color: var(--color-none);
+    color: var(--color-text-dark);
+    border: 4px dashed var(--color-text-dark);
+}
+
+.week-card.status-nothing-done {
+    background-color: var(--color-nothing);
+    color: var(--color-text-light);
+    border: 4px solid #fff;
+    box-shadow: 0 0 15px var(--color-nothing);
+}
+
+.week-card.status-unmarked {
+    background-color: var(--color-unmarked);
+    border: 2px dashed #bbb;
+}
+
+/* Overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-content {
+    background-color: var(--color-background);
+    padding: 3rem;
+    border-radius: 2rem;
+    text-align: center;
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    border: 5px solid var(--color-secondary);
+}
+
+.overlay-content h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-primary);
+}
+
+.overlay-content h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+}
+
+.overlay-content button {
+    display: block;
+    width: 100%;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.overlay-content button:hover {
+    transform: scale(1.05);
+}
+
+.overlay-content button.active {
+    outline: 6px solid var(--color-primary);
+    transform: scale(1.1);
+}
+
+.btn-status.complete {
+    background-color: var(--color-complete);
+    color: #fff;
+}
+
+.btn-status.partial {
+    background-color: var(--color-partial);
+    color: var(--color-text-dark);
+}
+
+.btn-status.none {
+    background-color: var(--color-none);
+    color: var(--color-text-dark);
+}
+
+.btn-status.nothing-done {
+    background-color: var(--color-nothing);
+    color: #fff;
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    color: #888;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.close-btn:hover {
+    transform: scale(1.2);
+    color: var(--color-primary);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-top: 0.5rem;
+}
+
+/* Specific styling for custom unicorn and streak images */
+.custom-unicorn-icon,
+.custom-streak-icon {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    margin-top: 0.5rem;
+}
+
+.stat-card:nth-child(1) .stat-icon {
+    color: #ffc800; /* Gold for Stars */
+}
+
+/* New CSS for the bonus stars picker */
+#bonus-stars-picker {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem; /* Space between stars */
+    font-size: 2.5rem;
+    margin: 1rem 0;
+    cursor: pointer;
+}
+
+/* This is the key change: a rule to make selected stars visible */
+#bonus-stars-picker .fas.fa-star {
+    color: #ccc; /* Default color for unselected stars */
+    transition: color 0.2s;
+}
+
+#bonus-stars-picker .fas.fa-star.active {
+    color: var(--color-secondary); /* Highlighted color for selected stars */
+}

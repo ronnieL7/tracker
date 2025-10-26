@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Homework Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Weekly Homework Tracker</h1>
+            <p>Noa Lavi</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h2>Stars</h2>
+                <p id="stars-count">0</p>
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h2>Unicorns</h2>
+                <p id="unicorns-count">0</p>
+                <div class="stat-icon">
+                    <img src="unicorn.gif" alt="Unicorn Icon" class="custom-unicorn-icon">
+                </div>
+            </div>
+            <div class="stat-card">
+                <h2>Streak</h2>
+                <p id="streak-count">0</p>
+                <div class="stat-icon">
+                    <img src="streak.jpg" alt="Streak Icon" class="custom-streak-icon">
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-header">
+            <button id="prev-month-btn"><i class="fas fa-chevron-left"></i></button>
+            <h2 class="calendar-month-year" id="current-month-year"></h2>
+            <button id="next-month-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="calendar-view" id="calendar">
+        </div>
+
+        <p style="text-align: center; margin-top: 2rem; color: #aaa; font-size: 0.8rem;">
+            v3.0.0
+        </p>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <button class="close-btn" id="close-overlay-btn"><i class="fas fa-times"></i></button>
+            <h2 id="overlay-week-title"></h2>
+            <h3>Select a status:</h3>
+            <button class="btn-status complete" data-status="complete">Complete</button>
+            <div id="bonus-stars-container" style="display: none; margin-top: 1.5rem;">
+                <h3>Add Bonus Stars:</h3>
+                <div id="bonus-stars-picker">
+                    </div>
+                <button id="confirm-bonus-btn" class="btn-status" style="margin-top: 1rem;">Confirm</button>
+            </div>
+            <button class="btn-status partial" data-status="partial">Partial</button>
+            <button class="btn-status nothing-done" data-status="nothing-done">Nothing Done</button>
+            <button class="btn-status none" data-status="none">No Homework</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
