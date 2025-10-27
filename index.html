@@ -53,20 +53,20 @@
             color: var(--orange);
             font-weight: 900;
             font-size: 2rem;
-            margin-bottom: 1.5rem; /* Increased margin to separate title from picture */
+            margin-bottom: 1.5rem;
         }
         /* Name Styling - Updated */
         .header p {
-            color: var(--purple); /* Changed to purple */
-            font-size: 1.1rem;    /* Increased size */
-            font-weight: 700;     /* Increased weight */
+            color: var(--purple);
+            font-size: 1.1rem;
+            font-weight: 700;
             margin-top: -0.25rem;
             margin-bottom: 2rem;
         }
         /* Profile Picture Styling */
         .profile-pic-container {
-            margin-bottom: 1.5rem; /* Added margin for separation */
-            margin-top: -1rem; /* Adjusted for better spacing below title */
+            margin-bottom: 1.5rem;
+            margin-top: -1rem;
         }
         .profile-pic {
             width: 80px;
@@ -182,7 +182,8 @@
         .week-card {
             width: 100px; /* Fixed width for consistent look in one row */
             flex-shrink: 0; /* Prevents cards from shrinking */
-            padding: 0.75rem;
+            /* CRITICAL FIX: Increased vertical padding to guarantee visibility */
+            padding: 1.0rem 0.75rem; 
             border-radius: 0.75rem;
             text-align: center;
             cursor: pointer;
@@ -199,6 +200,7 @@
             font-size: 1rem;
             font-weight: 700;
             margin-bottom: 0.1rem;
+            color: #1a202c; /* Explicit dark text color */
         }
         .week-card p {
             font-size: 0.7rem;
@@ -586,7 +588,8 @@
             startOfView.setDate(firstDayOfMonth.getDate() - diff);
             
             // Calculate the base week number based on the START_DATE (2025-09-08, Week 1)
-            const daysSinceStart = Math.floor((startOfView.getTime() - START_DATE.getTime()) / (24 * 60 * 60 * 1000));
+            const timeDiff = startOfView.getTime() - START_DATE.getTime();
+            const daysSinceStart = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
             const baseWeekNumber = Math.max(0, Math.floor(daysSinceStart / 7)) + 1; 
 
             // Render 5 weeks to cover the month view
@@ -756,7 +759,7 @@
         // 5. INITIALIZATION SEQUENCE
         // ===================================
         
-        // ** NEW: Render the calendar immediately so the boxes are visible **
+        // ** RENDER THE CALENDAR IMMEDIATELY **
         renderCalendar();
 
         /**
@@ -773,7 +776,6 @@
                 await loadData(); 
             } catch (error) {
                 console.error("Initialization failed: Authentication or initial data load error.", error);
-                // Fallback: The calendar is already rendered, just update stats (which will fail without data, but protects UI)
                 updateStats(); 
             }
         }
