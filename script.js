@@ -139,8 +139,6 @@ function generateBonusStars() {
     }
 }
 
-generateBonusStars();
-
 function updateStats() {
     let stars = 0;
     let currentStreak = 0;
@@ -350,5 +348,9 @@ async function initializeAuthAndData() {
     }
 }
 
-// Start the application by initializing Auth and loading data
-initializeAuthAndData();
+// Start the application by waiting for the DOM to be fully loaded.
+// This prevents issues where elements are accessed before they exist.
+document.addEventListener('DOMContentLoaded', () => {
+    generateBonusStars();
+    initializeAuthAndData();
+});
