@@ -1,3 +1,28 @@
+// ===================================
+// 1. FIREBASE SETUP
+// ===================================
+
+// Your web app's Firebase configuration (pasted from Firebase Console)
+const firebaseConfig = {
+  apiKey: "AIzaSyArcbWyj9mDznmL1Dyb1CAqDAcM3jbhXpo",
+  authDomain: "noa-s-tracker.firebaseapp.com",
+  projectId: "noa-s-tracker",
+  storageBucket: "noa-s-tracker.firebasestorage.app",
+  messagingSenderId: "759205644605",
+  appId: "1:759205644605:web:16bbc5e3862db566c55d54",
+  measurementId: "G-5S36FG9GLW"
+};
+
+// Initialize Firebase and Firestore (using the global 'firebase' object from the compat scripts)
+const app = firebase.initializeApp(firebaseConfig);
+const db = app.firestore();
+// We use a fixed document ID to ensure all devices access the same tracker data.
+const trackerRef = db.collection("trackers").doc("NoaLaviTracker"); 
+
+// ===================================
+// 2. DOM ELEMENTS AND INITIAL STATE
+// ===================================
+
 const calendar = document.getElementById('calendar');
 const currentMonthYear = document.getElementById('current-month-year');
 const prevMonthBtn = document.getElementById('prev-month-btn');
@@ -14,10 +39,60 @@ const bonusStarsContainer = document.getElementById('bonus-stars-container');
 const bonusStarsPicker = document.getElementById('bonus-stars-picker');
 const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
 
+// Start date used for calculating week numbers
 const START_DATE = new Date('2025-09-08');
 let currentDate = new Date('2025-09-08');
 let currentWeekData = {};
-let data = JSON.parse(localStorage.getItem('weeklyHomeworkTracker')) || {};
+// Data will now be loaded from Firestore instead of localStorage
+let data = {}; 
+
+// ===================================
+// 3. CORE FUNCTIONS (LOAD/SAVE/RENDER)
+// ===================================
+
+/**
+ * Loads data from Firestore.
+ * This is the new entry point for data retrieval.
+ */
+async function loadData() {
+    try {
+        const doc = await trackerRef.get();
+        if (doc.exists) {
+            // Data is stored under the 'weeks' field in the document
+            data = doc.data().weeks || {};
+            console.log("Data loaded from Firebase.");
+        } else {
+            console.log("No existing data in Firebase, initializing empty data object.");
+            data = {};
+        }
+    } catch (error) {
+        // If there's an error (e.g., network issue), we just start with empty data
+        console.error("Error loading data from Firebase:", error);
+    }
+    // After loading (or failing to load), render the UI
+    renderCalendar();
+    updateStats();
+}
+
+/**
+ * Saves the current data object to Firestore.
+ * This replaces the old localStorage.setItem call.
+ */
+async function saveData() {
+    // Save data to Firebase
+    try {
+        // Use .set() to save the entire 'data' object under the 'weeks' field
+        await trackerRef.set({ weeks: data });
+        console.log("Data saved to Firebase.");
+    } catch (error) {
+        console.error("Error saving data to Firebase:", error);
+    }
+
+    // Always update stats and render UI after saving
+    updateStats();
+    renderCalendar();
+}
+
 
 function generateBonusStars() {
     bonusStarsPicker.innerHTML = '';
@@ -50,12 +125,6 @@ function generateBonusStars() {
 }
 
 generateBonusStars();
-
-function saveData() {
-    localStorage.setItem('weeklyHomeworkTracker', JSON.stringify(data));
-    updateStats();
-    renderCalendar();
-}
 
 function updateStats() {
     let stars = 0;
@@ -136,7 +205,8 @@ function renderCalendar() {
     
     currentMonthYear.textContent = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     
-    if (currentDate.getTime() <= START_DATE.getTime()) {
+    // Logic to disable prev button if we are at the start date or before
+    if (currentDate.getTime() <= START_DATE.getTime() && currentDate.getMonth() === START_DATE.getMonth()) {
         prevMonthBtn.disabled = true;
         prevMonthBtn.style.opacity = 0.5;
         prevMonthBtn.style.cursor = 'not-allowed';
@@ -150,13 +220,18 @@ function renderCalendar() {
 function showOverlay(weekStart, weekNumber) {
     overlayWeekTitle.textContent = `Week #${weekNumber}`;
     
+    // Reset buttons and bonus container
     statusButtons.forEach(button => button.classList.remove('active'));
     bonusStarsContainer.style.display = 'none';
     document.querySelectorAll('#bonus-stars-picker .fas.fa-star').forEach(s => s.classList.remove('active'));
 
     const weekData = data[weekStart];
     if (weekData) {
-        document.querySelector(`.btn-status[data-status="${weekData.status}"]`).classList.add('active');
+        const activeBtn = document.querySelector(`.btn-status[data-status="${weekData.status}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
         if (weekData.status === 'complete') {
             bonusStarsContainer.style.display = 'block';
             if (weekData.bonusStars) {
@@ -173,6 +248,10 @@ function showOverlay(weekStart, weekNumber) {
     overlay.classList.add('visible');
 }
 
+// ===================================
+// 4. EVENT LISTENERS
+// ===================================
+
 statusButtons.forEach(button => {
     button.addEventListener('click', () => {
         const status = button.dataset.status;
@@ -182,26 +261,31 @@ statusButtons.forEach(button => {
         bonusStarsContainer.style.display = 'none';
 
         if (isAlreadyActive) {
+            // Clicking an active button removes the status (deletes the data point)
             delete data[currentWeekData.weekStart];
         } else {
             button.classList.add('active');
             if (status === 'complete') {
+                // If 'Complete' is selected, show bonus stars picker and wait for confirmation
                 bonusStarsContainer.style.display = 'block';
-                return;
+                return; // Do not save yet
             } else {
+                // For other statuses, save immediately
                 data[currentWeekData.weekStart] = { status: status };
+                overlay.classList.remove('visible');
             }
         }
         
         saveData();
-        overlay.classList.remove('visible');
     });
 });
 
 confirmBonusBtn.addEventListener('click', () => {
     if (currentWeekData.weekStart) {
         const selectedBonusStarsCount = document.querySelectorAll('#bonus-stars-picker .fas.fa-star.active').length;
+        // Set the status and the selected bonus stars
         data[currentWeekData.weekStart] = { status: 'complete', bonusStars: selectedBonusStarsCount };
+        
         saveData();
         overlay.classList.remove('visible');
     }
@@ -212,10 +296,8 @@ closeOverlayBtn.addEventListener('click', () => {
 });
 
 prevMonthBtn.addEventListener('click', () => {
-    if (currentDate.getTime() > START_DATE.getTime()) {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar();
-    }
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
 });
 
 nextMonthBtn.addEventListener('click', () => {
@@ -223,5 +305,9 @@ nextMonthBtn.addEventListener('click', () => {
     renderCalendar();
 });
 
-renderCalendar();
-updateStats();
+// ===================================
+// 5. INITIAL DATA LOAD
+// ===================================
+
+// Start the application by loading data from the cloud
+loadData();
