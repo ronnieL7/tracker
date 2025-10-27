@@ -214,35 +214,35 @@
             color: white; 
             border-color: #38a070; /* Dark Green Border */
         }
-        .status-complete p { color: rgba(255, 255, 255, 0.8); }
+        .status-complete h3, .status-complete p { color: white; }
         
         .status-partial { 
             background-color: var(--yellow-star); 
             color: #333; 
             border-color: #cc9d00; /* Darker Yellow Border */
         }
-        .status-partial p { color: rgba(0, 0, 0, 0.7); }
+        .status-partial h3, .status-partial p { color: #333; }
         
         .status-nothing-done { 
             background-color: var(--red); 
             color: white; 
             border-color: #c15454; /* Darker Red Border */
         }
-        .status-nothing-done p { color: rgba(255, 255, 255, 0.8); }
+        .status-nothing-done h3, .status-nothing-done p { color: white; }
         
         .status-none { 
             background-color: var(--blue); 
             color: white; 
             border-color: #3179b8; /* Darker Blue Border */
         }
-        .status-none p { color: rgba(255, 255, 255, 0.8); }
+        .status-none h3, .status-none p { color: white; }
         
         .status-unmarked { 
             background-color: #f0f0f0; 
             color: #555; 
             border-color: #ccc; /* Darker Gray Border */
         }
-        .status-unmarked p { color: #888; }
+        .status-unmarked h3, .status-unmarked p { color: #555; }
 
         /* Overlay Styles */
         .overlay {
@@ -477,8 +477,11 @@
         const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
 
         // Start date used for calculating week numbers (Monday, 2025-09-08)
-        const START_DATE = new Date('2025-09-08'); 
-        let currentDate = new Date('2025-09-08');
+        const START_DATE_RAW = new Date('2025-09-08'); 
+        START_DATE_RAW.setHours(0, 0, 0, 0); // Ensure consistent start time
+        const START_DATE = START_DATE_RAW;
+
+        let currentDate = new Date(START_DATE.getTime());
         let currentWeekData = {};
         let data = {}; 
 
@@ -560,10 +563,17 @@
 
                 if (status === 'complete') {
                     stars_total += 1 + (week.bonusStars || 0);
-                    streak_current++;
+                    // Check if the current week is in the past or current week before adding to streak
+                    const weekEndDate = new Date(new Date(weekStart).getTime() + 6 * 24 * 60 * 60 * 1000);
+                    if (weekEndDate < new Date()) { 
+                       streak_current++;
+                    }
                 } else if (status === 'partial') {
                     stars_total += 0.5;
-                    streak_current++;
+                    const weekEndDate = new Date(new Date(weekStart).getTime() + 6 * 24 * 60 * 60 * 1000);
+                    if (weekEndDate < new Date()) { 
+                       streak_current++;
+                    }
                 } else if (status === 'nothing-done') {
                     streak_current = 0;
                 }
@@ -577,6 +587,7 @@
         }
 
         function renderCalendar() {
+            console.log("Rendering calendar structure..."); // Debug log
             calendar.innerHTML = '';
             
             // Set the start date to the beginning of the *current month's* view (usually the Monday before the 1st)
@@ -586,10 +597,13 @@
             const diff = day === 1 ? 0 : (day === 0 ? 6 : day - 1); // diff to Monday
             const startOfView = new Date(firstDayOfMonth);
             startOfView.setDate(firstDayOfMonth.getDate() - diff);
+            startOfView.setHours(0, 0, 0, 0); // Normalize time
+
             
             // Calculate the base week number based on the START_DATE (2025-09-08, Week 1)
             const timeDiff = startOfView.getTime() - START_DATE.getTime();
             const daysSinceStart = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
+            // Ensure division by 7 is calculated correctly for weeks
             const baseWeekNumber = Math.max(0, Math.floor(daysSinceStart / 7)) + 1; 
 
             // Render 5 weeks to cover the month view
@@ -760,6 +774,7 @@
         // ===================================
         
         // ** RENDER THE CALENDAR IMMEDIATELY **
+        // This runs synchronously to ensure the calendar structure is built right away.
         renderCalendar();
 
         /**
@@ -772,10 +787,11 @@
                 } else {
                     await signInAnonymously(auth);
                 }
-                // loadData will re-render the calendar with saved statuses
+                // loadData will fetch data and trigger a re-render to color the boxes
                 await loadData(); 
             } catch (error) {
-                console.error("Initialization failed: Authentication or initial data load error.", error);
+                console.error("Initialization failed: Authentication or initial data load error. This may indicate a Firebase configuration or network issue.", error);
+                // If Firebase fails, at least the calendar skeleton is already rendered.
                 updateStats(); 
             }
         }
