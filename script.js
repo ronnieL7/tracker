@@ -33,21 +33,22 @@ let trackerDocRef = null;
 // 2. DOM ELEMENTS AND INITIAL STATE
 // ===================================
 
-const calendar = document.getElementById('calendar');
-const currentMonthYear = document.getElementById('current-month-year');
-const prevMonthBtn = document.getElementById('prev-month-btn');
-const nextMonthBtn = document.getElementById('next-month-btn');
-const overlay = document.getElementById('overlay');
-const overlayWeekTitle = document.getElementById('overlay-week-title');
-const closeOverlayBtn = document.getElementById('close-overlay-btn');
-const statusButtons = document.querySelectorAll('.btn-status');
-const starsCountElem = document.getElementById('stars-count');
-const unicornsCountElem = document.getElementById('unicorns-count');
-const streakCountElem = document.getElementById('streak-count');
+// CONVERTED TO LET and initialized to null to allow assignment inside DOMContentLoaded
+let calendar = null;
+let currentMonthYear = null;
+let prevMonthBtn = null;
+let nextMonthBtn = null;
+let overlay = null;
+let overlayWeekTitle = null;
+let closeOverlayBtn = null;
+let statusButtons = null;
+let starsCountElem = null;
+let unicornsCountElem = null;
+let streakCountElem = null;
 
-const bonusStarsContainer = document.getElementById('bonus-stars-container');
-const bonusStarsPicker = document.getElementById('bonus-stars-picker');
-const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
+let bonusStarsContainer = null;
+let bonusStarsPicker = null;
+let confirmBonusBtn = null;
 
 // Start date used for calculating week numbers
 const START_DATE = new Date('2025-09-08');
@@ -140,6 +141,11 @@ function generateBonusStars() {
 }
 
 function updateStats() {
+    if (!starsCountElem || !unicornsCountElem || !streakCountElem) {
+        console.error("Stat elements not initialized.");
+        return;
+    }
+
     let stars = 0;
     let currentStreak = 0;
 
@@ -174,6 +180,11 @@ function updateStats() {
 }
 
 function renderCalendar() {
+    if (!calendar || !currentMonthYear || !prevMonthBtn || !nextMonthBtn) {
+        console.error("Cannot render calendar. Critical DOM elements are missing.");
+        return;
+    }
+
     calendar.innerHTML = '';
     const startOfWeek = new Date(currentDate);
 
@@ -231,6 +242,11 @@ function renderCalendar() {
 }
 
 function showOverlay(weekStart, weekNumber) {
+    if (!overlay || !overlayWeekTitle || !statusButtons || !bonusStarsContainer) {
+        console.error("Cannot show overlay. Critical DOM elements are missing.");
+        return;
+    }
+    
     overlayWeekTitle.textContent = `Week #${weekNumber}`;
     
     // Reset buttons and bonus container
@@ -262,64 +278,100 @@ function showOverlay(weekStart, weekNumber) {
 }
 
 // ===================================
-// 4. EVENT LISTENERS
+// 4. DOM SETUP & EVENT LISTENERS REFACTOR
 // ===================================
 
-statusButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const status = button.dataset.status;
-        const isAlreadyActive = button.classList.contains('active');
-        document.querySelectorAll('.btn-status').forEach(b => b.classList.remove('active'));
-        
-        bonusStarsContainer.style.display = 'none';
+/**
+ * Initializes all global DOM references after the document structure is loaded.
+ */
+function setupDOMReferences() {
+    calendar = document.getElementById('calendar');
+    currentMonthYear = document.getElementById('current-month-year');
+    prevMonthBtn = document.getElementById('prev-month-btn');
+    nextMonthBtn = document.getElementById('next-month-btn');
+    overlay = document.getElementById('overlay');
+    overlayWeekTitle = document.getElementById('overlay-week-title');
+    closeOverlayBtn = document.getElementById('close-overlay-btn');
+    // Note: querySelectorAll must run after DOM is ready
+    statusButtons = document.querySelectorAll('.btn-status'); 
+    starsCountElem = document.getElementById('stars-count');
+    unicornsCountElem = document.getElementById('unicorns-count');
+    streakCountElem = document.getElementById('streak-count');
 
-        if (isAlreadyActive) {
-            // Clicking an active button removes the status (deletes the data point)
-            delete data[currentWeekData.weekStart];
-        } else {
-            button.classList.add('active');
-            if (status === 'complete') {
-                // If 'Complete' is selected, show bonus stars picker and wait for confirmation
-                bonusStarsContainer.style.display = 'block';
-                return; // Do not save yet
-            } else {
-                // For other statuses, save immediately
-                data[currentWeekData.weekStart] = { status: status };
-                overlay.classList.remove('visible');
-            }
-        }
-        
-        saveData();
-    });
-});
+    bonusStarsContainer = document.getElementById('bonus-stars-container');
+    bonusStarsPicker = document.getElementById('bonus-stars-picker');
+    confirmBonusBtn = document.getElementById('confirm-bonus-btn');
 
-confirmBonusBtn.addEventListener('click', () => {
-    if (currentWeekData.weekStart) {
-        const selectedBonusStarsCount = document.querySelectorAll('#bonus-stars-picker .fas.fa-star.active').length;
-        // Set the status and the selected bonus stars
-        data[currentWeekData.weekStart] = { status: 'complete', bonusStars: selectedBonusStarsCount };
-        
-        saveData();
-        overlay.classList.remove('visible');
-    }
-});
+    if (!calendar) {
+        console.error("CRITICAL ERROR: 'calendar' element (ID='calendar') not found.");
+    }
+}
 
-closeOverlayBtn.addEventListener('click', () => {
-    overlay.classList.remove('visible');
-});
+/**
+ * Attaches all necessary event listeners to the DOM elements.
+ */
+function setupEventListeners() {
+    if (!statusButtons || !confirmBonusBtn || !closeOverlayBtn || !prevMonthBtn || !nextMonthBtn) {
+        console.error("Cannot set up event listeners. One or more critical elements are null.");
+        return;
+    }
 
-prevMonthBtn.addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar();
-});
+    statusButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const status = button.dataset.status;
+            const isAlreadyActive = button.classList.contains('active');
+            document.querySelectorAll('.btn-status').forEach(b => b.classList.remove('active'));
+            
+            bonusStarsContainer.style.display = 'none';
 
-nextMonthBtn.addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar();
-});
+            if (isAlreadyActive) {
+                // Clicking an active button removes the status (deletes the data point)
+                delete data[currentWeekData.weekStart];
+            } else {
+                button.classList.add('active');
+                if (status === 'complete') {
+                    // If 'Complete' is selected, show bonus stars picker and wait for confirmation
+                    bonusStarsContainer.style.display = 'block';
+                    return; // Do not save yet
+                } else {
+                    // For other statuses, save immediately
+                    data[currentWeekData.weekStart] = { status: status };
+                    overlay.classList.remove('visible');
+                }
+            }
+            
+            saveData();
+        });
+    });
+
+    confirmBonusBtn.addEventListener('click', () => {
+        if (currentWeekData.weekStart) {
+            const selectedBonusStarsCount = document.querySelectorAll('#bonus-stars-picker .fas.fa-star.active').length;
+            // Set the status and the selected bonus stars
+            data[currentWeekData.weekStart] = { status: 'complete', bonusStars: selectedBonusStarsCount };
+            
+            saveData();
+            overlay.classList.remove('visible');
+        }
+    });
+
+    closeOverlayBtn.addEventListener('click', () => {
+        overlay.classList.remove('visible');
+    });
+
+    prevMonthBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
+
+    nextMonthBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
+}
 
 // ===================================
-// 5. AUTHENTICATION AND INITIAL DATA LOAD (FIX APPLIED)
+// 5. AUTHENTICATION AND INITIAL DATA LOAD
 // ===================================
 
 /**
@@ -349,8 +401,14 @@ async function initializeAuthAndData() {
 }
 
 // Start the application by waiting for the DOM to be fully loaded.
-// This prevents issues where elements are accessed before they exist.
 document.addEventListener('DOMContentLoaded', () => {
+    // New Order: 
+    // 1. Get references
+    setupDOMReferences(); 
+    // 2. Generate elements
     generateBonusStars();
+    // 3. Attach listeners
+    setupEventListeners(); 
+    // 4. Load data and render UI
     initializeAuthAndData();
 });
