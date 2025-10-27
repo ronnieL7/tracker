@@ -33,7 +33,7 @@ let trackerDocRef = null;
 // 2. DOM ELEMENTS AND INITIAL STATE
 // ===================================
 
-// CONVERTED TO LET and initialized to null to allow assignment inside DOMContentLoaded
+// CONVERTED TO LET and initialized to null to allow assignment inside setupDOMReferences()
 let calendar = null;
 let currentMonthYear = null;
 let prevMonthBtn = null;
@@ -111,6 +111,11 @@ async function saveData() {
 
 
 function generateBonusStars() {
+    if (!bonusStarsPicker) {
+        console.error("Cannot generate bonus stars. Picker element is missing.");
+        return;
+    }
+
     bonusStarsPicker.innerHTML = '';
     for (let i = 1; i <= 5; i++) {
         const star = document.createElement('i');
@@ -141,8 +146,9 @@ function generateBonusStars() {
 }
 
 function updateStats() {
+    // Stat elements must be checked here as well
     if (!starsCountElem || !unicornsCountElem || !streakCountElem) {
-        console.error("Stat elements not initialized.");
+        console.error("Stat elements not initialized. Skipping stat update.");
         return;
     }
 
@@ -180,8 +186,9 @@ function updateStats() {
 }
 
 function renderCalendar() {
+    // Check elements *before* trying to manipulate them
     if (!calendar || !currentMonthYear || !prevMonthBtn || !nextMonthBtn) {
-        console.error("Cannot render calendar. Critical DOM elements are missing.");
+        console.error("Cannot render calendar. Critical DOM elements are missing. DOM elements must be available before this is called.");
         return;
     }
 
@@ -303,16 +310,20 @@ function setupDOMReferences() {
     confirmBonusBtn = document.getElementById('confirm-bonus-btn');
 
     if (!calendar) {
-        console.error("CRITICAL ERROR: 'calendar' element (ID='calendar') not found.");
+        // CRITICAL: If the calendar element is missing, we must log an error and halt rendering
+        console.error("CRITICAL ERROR: 'calendar' element (ID='calendar') not found. Check HTML structure.");
+        return false; // Indicate failure
     }
+    return true; // Indicate success
 }
 
 /**
  * Attaches all necessary event listeners to the DOM elements.
  */
 function setupEventListeners() {
+    // We already checked for missing elements in setupDOMReferences, but a quick check here is good
     if (!statusButtons || !confirmBonusBtn || !closeOverlayBtn || !prevMonthBtn || !nextMonthBtn) {
-        console.error("Cannot set up event listeners. One or more critical elements are null.");
+        console.error("Cannot set up event listeners. One or more critical elements are null. Skipping event setup.");
         return;
     }
 
@@ -379,15 +390,13 @@ function setupEventListeners() {
  */
 async function initializeAuthAndData() {
     try {
-        // CRUCIAL FIX: Force sign out to ensure a new anonymous ID is generated 
-        // for THIS app instance, preventing cross-project data collision.
+        // CRUCIAL: Force sign out to ensure a new anonymous ID is generated 
         await signOut(auth); 
         
-        // Sign in anonymously to ensure the security rules are met.
+        // Sign in anonymously
         const userCredential = await signInAnonymously(auth);
         
-        // Define the document reference using the original fixed path logic, but with the modern SDK
-        // Path: collection('trackers').doc('NoaLaviTracker')
+        // Define the fixed document reference
         trackerDocRef = doc(db, "trackers", "NoaLaviTracker");
 
         console.log("Signed in with new User ID:", userCredential.user.uid);
@@ -402,13 +411,17 @@ async function initializeAuthAndData() {
 
 // Start the application by waiting for the DOM to be fully loaded.
 document.addEventListener('DOMContentLoaded', () => {
-    // New Order: 
-    // 1. Get references
-    setupDOMReferences(); 
-    // 2. Generate elements
+    // 1. Get references. If this fails, we cannot proceed with rendering/events.
+    if (!setupDOMReferences()) {
+        return; 
+    }
+
+    // 2. Generate elements (like bonus stars)
     generateBonusStars();
+    
     // 3. Attach listeners
     setupEventListeners(); 
-    // 4. Load data and render UI
+    
+    // 4. Load data and render UI (which calls renderCalendar and updateStats)
     initializeAuthAndData();
 });
