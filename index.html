@@ -500,7 +500,8 @@
             } catch (error) {
                 console.error("Error loading data from Firestore:", error);
             }
-            renderCalendar();
+            // Re-render to show loaded data
+            renderCalendar(); 
             updateStats();
         }
 
@@ -754,6 +755,9 @@
         // ===================================
         // 5. INITIALIZATION SEQUENCE
         // ===================================
+        
+        // ** NEW: Render the calendar immediately so the boxes are visible **
+        renderCalendar();
 
         /**
          * Mandatory authentication step before loading data.
@@ -765,12 +769,12 @@
                 } else {
                     await signInAnonymously(auth);
                 }
-                await loadData();
+                // loadData will re-render the calendar with saved statuses
+                await loadData(); 
             } catch (error) {
                 console.error("Initialization failed: Authentication or initial data load error.", error);
-                // Fallback: Still render with empty data if auth fails
-                renderCalendar();
-                updateStats();
+                // Fallback: The calendar is already rendered, just update stats (which will fail without data, but protects UI)
+                updateStats(); 
             }
         }
         
