@@ -439,42 +439,17 @@
         import { getFirestore, doc, getDoc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ===================================
-        // 1. FIREBASE SETUP (FIXED)
+        // 1. GLOBAL STATE AND FIREBASE SETUP VARIABLES
         // ===================================
-        
-        // IMPORTANT: Use the global configuration provided by the environment
+
+        let db = null;
+        let auth = null;
+        let trackerRef = null;
+        let isFirebaseReady = false;
+
+        // Use the global configuration provided by the environment
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        setLogLevel('Debug');
-
-        // Firestore reference path (Adhering to mandatory public data structure)
-        const trackerDocPath = `artifacts/${appId}/public/data/trackers/NoaLaviTracker`;
-        const trackerRef = doc(db, trackerDocPath);
-
-        // ===================================
-        // 2. DOM ELEMENTS AND INITIAL STATE
-        // ===================================
-        const calendar = document.getElementById('calendar');
-        const currentMonthYear = document.getElementById('current-month-year');
-        const prevMonthBtn = document.getElementById('prev-month-btn');
-        const nextMonthBtn = document.getElementById('next-month-btn');
-        const overlay = document.getElementById('overlay');
-        const overlayWeekTitle = document.getElementById('overlay-week-title');
-        const closeOverlayBtn = document.getElementById('close-overlay-btn');
-        // Select all status buttons *except* the Confirm button
-        const statusButtons = document.querySelectorAll('.btn-status:not(#confirm-bonus-btn)'); 
-        const starsCountElem = document.getElementById('stars-count');
-        const unicornsCountElem = document.getElementById('unicorns-count');
-        const streakCountElem = document.getElementById('streak-count');
-
-        const bonusStarsContainer = document.getElementById('bonus-stars-container');
-        const bonusStarsPicker = document.getElementById('bonus-stars-picker');
-        const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
 
         // Start date used for calculating week numbers (Monday, 2025-09-08)
         const START_DATE_RAW = new Date('2025-09-08'); 
@@ -486,6 +461,24 @@
         let data = {}; 
 
         // ===================================
+        // 2. DOM ELEMENTS AND INITIALIZATION
+        // ===================================
+        const calendar = document.getElementById('calendar');
+        const currentMonthYear = document.getElementById('current-month-year');
+        const prevMonthBtn = document.getElementById('prev-month-btn');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const overlay = document.getElementById('overlay');
+        const overlayWeekTitle = document.getElementById('overlay-week-title');
+        const closeOverlayBtn = document.getElementById('close-overlay-btn');
+        const statusButtons = document.querySelectorAll('.btn-status:not(#confirm-bonus-btn)'); 
+        const starsCountElem = document.getElementById('stars-count');
+        const unicornsCountElem = document.getElementById('unicorns-count');
+        const streakCountElem = document.getElementById('streak-count');
+        const bonusStarsContainer = document.getElementById('bonus-stars-container');
+        const bonusStarsPicker = document.getElementById('bonus-stars-picker');
+        const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
+
+        // ===================================
         // 3. CORE FUNCTIONS (LOAD/SAVE/RENDER)
         // ===================================
 
@@ -493,6 +486,8 @@
          * Loads data from Firestore after successful authentication.
          */
         async function loadData() {
+            if (!isFirebaseReady) return;
+
             try {
                 const docSnap = await getDoc(trackerRef);
                 if (docSnap.exists()) {
@@ -505,7 +500,7 @@
             } catch (error) {
                 console.error("Error loading data from Firestore:", error);
             }
-            // Re-render to show loaded data
+            // Re-render to show loaded data and update stats with persistence data
             renderCalendar(); 
             updateStats();
         }
@@ -514,6 +509,12 @@
          * Saves the entire 'data' object to Firestore.
          */
         async function saveData() {
+            if (!isFirebaseReady) {
+                console.warn("Firebase not initialized. Data cannot be saved.");
+                updateStats(); // Update UI locally if persistence is disabled
+                return;
+            }
+
             try {
                 // Use .set() with { merge: true } to save the data under the 'weeks' field
                 await setDoc(trackerRef, { weeks: data }, { merge: true });
@@ -554,6 +555,7 @@
         function updateStats() {
             let stars_total = 0;
             let streak_current = 0;
+            let max_streak = 0; // Not used in UI but good practice
 
             const sortedWeekKeys = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
 
@@ -563,22 +565,20 @@
 
                 if (status === 'complete') {
                     stars_total += 1 + (week.bonusStars || 0);
-                    // Check if the current week is in the past or current week before adding to streak
-                    const weekEndDate = new Date(new Date(weekStart).getTime() + 6 * 24 * 60 * 60 * 1000);
-                    if (weekEndDate < new Date()) { 
-                       streak_current++;
-                    }
+                    // Streak logic simplified: count consecutive weeks with homework done
+                    streak_current++;
                 } else if (status === 'partial') {
                     stars_total += 0.5;
-                    const weekEndDate = new Date(new Date(weekStart).getTime() + 6 * 24 * 60 * 60 * 1000);
-                    if (weekEndDate < new Date()) { 
-                       streak_current++;
-                    }
+                    streak_current++;
                 } else if (status === 'nothing-done') {
+                    // Homework was done, but streak is broken
                     streak_current = 0;
                 }
                 // 'none' status (No Homework) maintains the current streak but doesn't add to it
+
+                max_streak = Math.max(max_streak, streak_current); // Track max streak
             });
+
 
             const unicorns = Math.floor(stars_total / 4);
             starsCountElem.textContent = stars_total % 1 === 0 ? stars_total.toString() : stars_total.toFixed(1);
@@ -779,20 +779,34 @@
 
         /**
          * Mandatory authentication step before loading data.
+         * This now robustly handles the Firebase initialization failure.
          */
         async function authenticateAndStart() {
             try {
+                // 1. Initialize Firebase services
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug');
+                
+                // 2. Authentication
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-                // loadData will fetch data and trigger a re-render to color the boxes
+                
+                // 3. Set Ready State and Path
+                trackerRef = doc(db, `artifacts/${appId}/public/data/trackers/NoaLaviTracker`);
+                isFirebaseReady = true;
+
+                // 4. Load persistent data
                 await loadData(); 
             } catch (error) {
-                console.error("Initialization failed: Authentication or initial data load error. This may indicate a Firebase configuration or network issue.", error);
-                // If Firebase fails, at least the calendar skeleton is already rendered.
-                updateStats(); 
+                console.error("CRITICAL FIREBASE ERROR: Data persistence is disabled. The application will function locally, but data will not be saved. Error:", error.message);
+                // Since the calendar is already rendered, we just update stats with default data.
+                isFirebaseReady = false;
+                updateStats();
             }
         }
         
