@@ -435,8 +435,8 @@
     <!-- Mandatory Firebase SDKs (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, setLogLevel, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ===================================
         // 1. GLOBAL STATE AND FIREBASE SETUP VARIABLES
@@ -446,6 +446,7 @@
         let auth = null;
         let trackerRef = null;
         let isFirebaseReady = false;
+        let userId = null; // Store the authenticated user's ID
 
         // Use the global configuration provided by the environment
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
@@ -456,7 +457,10 @@
         START_DATE_RAW.setHours(0, 0, 0, 0); // Ensure consistent start time
         const START_DATE = START_DATE_RAW;
 
-        let currentDate = new Date(START_DATE.getTime());
+        // FIX: Start with the actual current month, not the hardcoded start date
+        let currentDate = new Date(); 
+        currentDate.setDate(1); // Set to the 1st of the month for proper calendar rendering
+        
         let currentWeekData = {};
         let data = {}; 
 
@@ -483,47 +487,53 @@
         // ===================================
 
         /**
-         * Loads data from Firestore after successful authentication.
+         * Listens to the Firestore document in real-time and updates the UI.
+         * This replaces the old loadData() function.
          */
-        async function loadData() {
-            if (!isFirebaseReady) return;
+        function listenForData() {
+            if (!isFirebaseReady || !trackerRef) return;
 
-            try {
-                const docSnap = await getDoc(trackerRef);
+            // Use onSnapshot for real-time updates on the single document reference (trackerRef)
+            onSnapshot(trackerRef, (docSnap) => {
                 if (docSnap.exists()) {
-                    data = docSnap.data().weeks || {};
-                    console.log("Data loaded from Firestore successfully.");
+                    // The document stores an object under the 'weeks' key
+                    data = docSnap.data().weeks || {}; 
+                    console.log("Real-time data update received.");
                 } else {
-                    console.log("No existing data in Firestore, initializing empty data object.");
+                    console.log("Tracker document does not exist, initializing local data.");
                     data = {};
                 }
-            } catch (error) {
-                console.error("Error loading data from Firestore:", error);
-            }
-            // Re-render to show loaded data and update stats with persistence data
-            renderCalendar(); 
-            updateStats();
+                // Always re-render and update stats upon receiving data
+                updateStats(); 
+                renderCalendar();
+            }, (error) => {
+                console.error("Error listening to Firestore:", error);
+            });
         }
+
 
         /**
          * Saves the entire 'data' object to Firestore.
+         * Note: The UI update is now handled by the onSnapshot listener above.
          */
         async function saveData() {
             if (!isFirebaseReady) {
                 console.warn("Firebase not initialized. Data cannot be saved.");
-                updateStats(); // Update UI locally if persistence is disabled
+                updateStats(); // Fallback: Update UI locally if persistence is disabled
+                renderCalendar(); // Fallback: Update UI locally if persistence is disabled
                 return;
             }
 
             try {
-                // Use .set() with { merge: true } to save the data under the 'weeks' field
+                // Use .set() with { merge: true } to save the entire 'data' object under the 'weeks' field
+                // If the document doesn't exist, it will be created.
                 await setDoc(trackerRef, { weeks: data }, { merge: true });
-                console.log("Data saved to Firestore successfully.");
+                console.log("Data saved to Firestore successfully (via setDoc).");
             } catch (error) {
                 console.error("Error saving data to Firestore:", error);
             }
-            updateStats();
-            renderCalendar();
+            // IMPORTANT: The calls to updateStats() and renderCalendar() have been removed here.
+            // They are now triggered automatically by the 'onSnapshot' listener (listenForData).
         }
 
 
@@ -555,28 +565,45 @@
         function updateStats() {
             let stars_total = 0;
             let streak_current = 0;
-            let max_streak = 0; // Not used in UI but good practice
+            // Variable to track if the current day has passed 'today' for the streak calculation
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
 
+            // Get all week start keys and sort them chronologically
             const sortedWeekKeys = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
 
-            sortedWeekKeys.forEach(weekStart => {
-                const week = data[weekStart];
+            sortedWeekKeys.forEach(weekStartString => {
+                const weekStartDate = new Date(weekStartString);
+                const weekEndDate = new Date(weekStartDate);
+                weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+                const week = data[weekStartString];
                 const status = week.status;
-
-                if (status === 'complete') {
-                    stars_total += 1 + (week.bonusStars || 0);
-                    // Streak logic simplified: count consecutive weeks with homework done
-                    streak_current++;
-                } else if (status === 'partial') {
-                    stars_total += 0.5;
-                    streak_current++;
-                } else if (status === 'nothing-done') {
-                    // Homework was done, but streak is broken
-                    streak_current = 0;
+                
+                // Only count weeks that have passed or are the current week (to prevent forecasting streak)
+                if (weekEndDate.getTime() < today.getTime()) {
+                    if (status === 'complete') {
+                        stars_total += 1 + (week.bonusStars || 0);
+                        streak_current++;
+                    } else if (status === 'partial') {
+                        stars_total += 0.5;
+                        streak_current++;
+                    } else if (status === 'nothing-done') {
+                        streak_current = 0; // Streak broken
+                    }
+                    // 'none' status (No Homework) maintains streak, so no action needed on streak_current
+                } else {
+                    // Stop streak calculation once we hit the current week or a future week
+                    if (status === 'complete') {
+                        stars_total += 1 + (week.bonusStars || 0);
+                        // Do not increase streak for the current or future incomplete week
+                    } else if (status === 'partial') {
+                        stars_total += 0.5;
+                        // Do not increase streak
+                    } else if (status === 'nothing-done') {
+                        streak_current = 0; // Streak broken on the current incomplete week
+                    }
                 }
-                // 'none' status (No Homework) maintains the current streak but doesn't add to it
-
-                max_streak = Math.max(max_streak, streak_current); // Track max streak
             });
 
 
@@ -774,14 +801,13 @@
         // ===================================
         
         // ** RENDER THE CALENDAR IMMEDIATELY **
-        // This runs synchronously to ensure the calendar structure is built right away.
         renderCalendar();
 
         /**
-         * Mandatory authentication step before loading data.
-         * This now robustly handles the Firebase initialization failure.
+         * The standard function to start Firebase services, handle authentication, 
+         * and set up the user-specific, real-time data listener.
          */
-        async function authenticateAndStart() {
+        function startFirebaseServices() {
             try {
                 // 1. Initialize Firebase services
                 const app = initializeApp(firebaseConfig);
@@ -789,28 +815,49 @@
                 auth = getAuth(app);
                 setLogLevel('Debug');
                 
-                // 2. Authentication
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                // 2. Initial Sign-in Attempt
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (initialAuthToken) {
+                    signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                        console.error("Custom token sign-in failed, trying anonymous.", e);
+                        signInAnonymously(auth);
+                    });
                 } else {
-                    await signInAnonymously(auth);
+                    signInAnonymously(auth);
                 }
-                
-                // 3. Set Ready State and Path
-                trackerRef = doc(db, `artifacts/${appId}/public/data/trackers/NoaLaviTracker`);
-                isFirebaseReady = true;
 
-                // 4. Load persistent data
-                await loadData(); 
+                // 3. Auth State Listener (Crucial for getting the UID and setting up the path)
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        
+                        // Set PRIVATE USER DATA PATH: 
+                        // artifacts/{appId}/users/{userId}/tracker_data
+                        // The document ID is 'weeks' because the content is structured around weeks.
+                        trackerRef = doc(db, `artifacts/${appId}/users/${userId}/tracker_data/weeks`);
+                        isFirebaseReady = true;
+                        
+                        console.log(`Authenticated as User: ${userId}. Starting data listener.`);
+                        
+                        // Start real-time listener (the new data loading approach)
+                        listenForData(); 
+                    } else {
+                        isFirebaseReady = false;
+                        userId = null;
+                        console.log("Not authenticated. Application running locally.");
+                        // Fallback: If auth fails, ensure stats are calculated based on empty local data
+                        updateStats(); 
+                        renderCalendar();
+                    }
+                });
             } catch (error) {
-                console.error("CRITICAL FIREBASE ERROR: Data persistence is disabled. The application will function locally, but data will not be saved. Error:", error.message);
-                // Since the calendar is already rendered, we just update stats with default data.
+                console.error("CRITICAL FIREBASE INITIALIZATION ERROR: Data persistence is disabled.", error.message);
                 isFirebaseReady = false;
-                updateStats();
+                updateStats(); // Fallback to local rendering
             }
         }
         
-        authenticateAndStart();
+        startFirebaseServices();
 
     </script>
 </body>
