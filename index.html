@@ -1,448 +1,864 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weekly Homework Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    :root {
-      --orange: #ff8c43;
-      --purple: #6a1a8c;
-      --light-bg: #fffbf5;
-      --card-bg: white;
-      --green: #48c48a;
-      --red: #f16a6a;
-      --yellow-star: #ffc400;
-      --blue: #4299e1;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Homework Tracker</title>
+    <!-- Load Inter font for clean look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Load Font Awesome for icons (still needed for the Star) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- CUSTOM STYLES TO MATCH ORIGINAL DESIGN --- */
+        :root {
+            /* Color Palette from Image */
+            --orange: #ff8c43;
+            --purple: #6a1a8c;
+            --light-bg: #fffbf5;
+            --card-bg: white;
+            --green: #48c48a;
+            --red: #f16a6a;
+            --yellow-star: #ffc400;
+            --blue: #4299e1; /* New Blue for 'No Homework' */
+        }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--light-bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 1rem;
-      background-image: radial-gradient(var(--orange) 1px, transparent 0);
-      background-size: 40px 40px;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            background-image: radial-gradient(var(--orange) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 600px;
-      padding: 2.5rem 2rem;
-      background-color: var(--card-bg);
-      border-radius: 2rem;
-      border: 4px solid var(--orange);
-      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 0 0 0 10px rgba(255, 140, 67, 0.1);
-    }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 2.5rem 2rem;
+            background-color: var(--card-bg);
+            border-radius: 2rem;
+            border: 4px solid var(--orange);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 0 0 0 10px rgba(255, 140, 67, 0.1);
+        }
 
-    .header {
-      text-align: center;
-    }
+        /* Header Styling */
+        .header {
+            text-align: center;
+        }
+        .header h1 {
+            color: var(--orange);
+            font-weight: 900;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        /* Name Styling - Updated */
+        .header p {
+            color: var(--purple);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: -0.25rem;
+            margin-bottom: 2rem;
+        }
+        /* Profile Picture Styling */
+        .profile-pic-container {
+            margin-bottom: 1.5rem;
+            margin-top: -1rem;
+        }
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--purple);
+            box-shadow: 0 0 0 4px white;
+        }
 
-    .header h1 {
-      color: var(--orange);
-      font-weight: 900;
-      font-size: 2rem;
-      margin-bottom: 1.5rem;
-    }
+        /* Stats Grid */
+        .stats-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        .stat-card {
+            flex: 1;
+            background-color: var(--card-bg);
+            padding: 1rem 0.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        /* Stat Title Styling - Updated (Purple) */
+        .stat-card h2 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--purple); 
+        }
+        .stat-card p {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--purple);
+            line-height: 1.1;
+        }
+        .stat-icon {
+            /* Ensures container for the icon/image is styled */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 2.4rem; /* Icon/Image container height */
+            margin-top: 0.25rem;
+        }
+        /* Image/Icon Styling for Stats */
+        .stat-icon img {
+            width: 2.4rem; /* Icon/Image size */
+            height: 2.4rem;
+            object-fit: contain; /* Prevents stretching */
+        }
+        /* Specific Icon Colors and Size for Font Awesome (Star) */
+        #stars-count + .stat-icon i { 
+            color: var(--yellow-star); 
+            font-size: 2.4rem; /* Star icon size (decreased by 33%) */
+        }
 
-    .header p {
-      color: var(--purple);
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-top: -0.25rem;
-      margin-bottom: 2rem;
-    }
 
-    .profile-pic-container {
-      margin-bottom: 1.5rem;
-      margin-top: -1rem;
-    }
+        /* Calendar Header (Month Navigation) */
+        .calendar-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .calendar-header button {
+            background-color: var(--orange);
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s, transform 0.2s;
+            position: absolute; /* Position relative to the container */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        #prev-month-btn { left: 0; }
+        #next-month-btn { right: 0; }
+        .calendar-header button:hover {
+            background-color: #e57632;
+        }
+        .calendar-header button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #ccc;
+        }
+        .calendar-month-year {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #333;
+            padding: 0 3rem;
+        }
 
-    .profile-pic {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid var(--purple);
-      box-shadow: 0 0 0 4px white;
-    }
+        /* Calendar View (Week Cards) - MODIFIED FOR SINGLE ROW */
+        .calendar-view {
+            display: flex;
+            flex-wrap: nowrap; /* Forces all cards onto a single line */
+            justify-content: flex-start;
+            gap: 0.75rem;
+            padding-bottom: 3rem;
+            overflow-x: auto; /* Enables horizontal scrolling */
+            -webkit-overflow-scrolling: touch; /* Smoother scrolling on touch devices */
+        }
+        .week-card {
+            width: 100px; /* Fixed width for consistent look in one row */
+            flex-shrink: 0; /* Prevents cards from shrinking */
+            /* CRITICAL FIX: Increased vertical padding to guarantee visibility */
+            padding: 1.0rem 0.75rem; 
+            border-radius: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            /* Border is 4px */
+            border: 4px solid transparent; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        .week-card:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .week-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.1rem;
+            color: #1a202c; /* Explicit dark text color */
+        }
+        .week-card p {
+            font-size: 0.7rem;
+            color: rgba(0, 0, 0, 0.6);
+            line-height: 1;
+        }
 
-    .stats-grid {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
+        /* Status Colors for Week Cards (Including Darker Borders) */
+        .status-complete { 
+            background-color: var(--green); 
+            color: white; 
+            border-color: #38a070; /* Dark Green Border */
+        }
+        .status-complete h3, .status-complete p { color: white; }
+        
+        .status-partial { 
+            background-color: var(--yellow-star); 
+            color: #333; 
+            border-color: #cc9d00; /* Darker Yellow Border */
+        }
+        .status-partial h3, .status-partial p { color: #333; }
+        
+        .status-nothing-done { 
+            background-color: var(--red); 
+            color: white; 
+            border-color: #c15454; /* Darker Red Border */
+        }
+        .status-nothing-done h3, .status-nothing-done p { color: white; }
+        
+        .status-none { 
+            background-color: var(--blue); 
+            color: white; 
+            border-color: #3179b8; /* Darker Blue Border */
+        }
+        .status-none h3, .status-none p { color: white; }
+        
+        .status-unmarked { 
+            background-color: #f0f0f0; 
+            color: #555; 
+            border-color: #ccc; /* Darker Gray Border */
+        }
+        .status-unmarked h3, .status-unmarked p { color: #555; }
 
-    .stat-card {
-      flex: 1;
-      background-color: var(--card-bg);
-      padding: 1rem 0.5rem;
-      border-radius: 1rem;
-      text-align: center;
-      border: 1px solid #eee;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s;
-    }
+        /* Overlay Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .overlay-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+        }
+        .btn-status {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            color: white;
+        }
+        .btn-status.complete { background-color: var(--green); }
+        .btn-status.complete.active { border-color: #059669; }
+        .btn-status.partial { background-color: var(--yellow-star); color: #333; }
+        .btn-status.partial.active { border-color: #d97706; }
+        .btn-status.nothing-done { background-color: var(--red); }
+        .btn-status.nothing-done.active { border-color: #b91c1c; }
+        
+        /* UPDATED: No Homework button color to BLUE */
+        .btn-status.none { background-color: var(--blue); }
+        .btn-status.none.active { border-color: #2563eb; } /* Darker blue border for active state */
+        
+        .btn-status:not(.active):hover { opacity: 0.9; }
 
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-card h2 {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--purple); 
-    }
-
-    .stat-card p {
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: var(--purple);
-      line-height: 1.1;
-    }
-
-    .stat-icon {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 2.4rem;
-      margin-top: 0.25rem;
-    }
-
-    .stat-icon img {
-      width: 2.4rem;
-      height: 2.4rem;
-      object-fit: contain;
-    }
-
-    #stars-count + .stat-icon i { 
-      color: var(--yellow-star); 
-      font-size: 2.4rem;
-    }
-
-    .calendar-header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .calendar-header button {
-      background-color: var(--orange);
-      color: white;
-      border: none;
-      padding: 0.75rem 1rem;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.2s, transform 0.2s;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    #prev-month-btn { left: 0; }
-    #next-month-btn { right: 0; }
-
-    .calendar-header button:hover {
-      background-color: #e57632;
-    }
-
-    .calendar-header button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: #ccc;
-    }
-
-    .calendar-month-year {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #333;
-      padding: 0 3rem;
-    }
-
-    .calendar-view {
-      display: flex;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      gap: 0.75rem;
-      padding-bottom: 3rem;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .week-card {
-      width: 100px;
-      flex-shrink: 0;
-      padding: 1rem 0.75rem; 
-      border-radius: 0.75rem;
-      text-align: center;
-      cursor: pointer;
-      border: 4px solid transparent; 
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: all 0.2s;
-    }
-
-    .week-card:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .week-card h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 0.1rem;
-      color: #1a202c;
-    }
-
-    .week-card p {
-      font-size: 0.7rem;
-      color: rgba(0, 0, 0, 0.6);
-      line-height: 1;
-    }
-
-    .status-complete { background-color: var(--green); color: white; border-color: #38a070; }
-    .status-partial { background-color: var(--yellow-star); color: #333; border-color: #cc9d00; }
-    .status-nothing-done { background-color: var(--red); color: white; border-color: #c15454; }
-    .status-none { background-color: var(--blue); color: white; border-color: #3179b8; }
-    .status-unmarked { background-color: #f0f0f0; color: #555; border-color: #ccc; }
-
-    .overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      display: flex; justify-content: center; align-items: center;
-      opacity: 0; visibility: hidden; transition: opacity 0.3s;
-      z-index: 1000;
-    }
-
-    .overlay.visible { opacity: 1; visibility: visible; }
-
-    .overlay-content {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      width: 90%;
-      max-width: 400px;
-      position: relative;
-      text-align: center;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #888;
-    }
-
-    .btn-status {
-      width: 100%;
-      padding: 0.8rem;
-      margin-bottom: 0.75rem;
-      border-radius: 0.5rem;
-      font-weight: 700;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-      color: white;
-    }
-
-    .btn-status.complete { background-color: var(--green); }
-    .btn-status.partial { background-color: var(--yellow-star); color: #333; }
-    .btn-status.nothing-done { background-color: var(--red); }
-    .btn-status.none { background-color: var(--blue); }
-
-    #confirm-bonus-btn {
-      background-color: var(--orange);
-      color: white;
-    }
-
-    #bonus-stars-picker {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    #bonus-stars-picker .fa-star {
-      font-size: 1.5rem;
-      color: #d1d5db;
-      cursor: pointer;
-      transition: color 0.1s;
-    }
-
-    #bonus-stars-picker .fa-star.active {
-      color: var(--yellow-star);
-    }
-
-    .v-text {
-      text-align: center;
-      margin-top: 2rem;
-      color: #ccc;
-      font-size: 0.7rem;
-    }
-  </style>
+        #confirm-bonus-btn {
+            background-color: var(--orange);
+            color: white;
+        }
+        /* Bonus Stars Picker */
+        #bonus-stars-picker {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        #bonus-stars-picker .fa-star {
+            font-size: 1.5rem;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.1s;
+        }
+        #bonus-stars-picker .fa-star.active {
+            color: var(--yellow-star);
+        }
+        .v-text {
+            text-align: center;
+            margin-top: 2rem;
+            color: #ccc;
+            font-size: 0.7rem;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Weekly Homework Tracker</h1>
-      <div class="profile-pic-container">
-        <img src="https://placehold.co/80x80/6a1a8c/ffffff/png?text=Profile" alt="Profile Picture" class="profile-pic">
-      </div>
-      <p>Noa Lavi</p>
+
+    <div class="container">
+        <div class="header">
+            <h1>Weekly Homework Tracker</h1>
+            
+            <!-- Profile Picture Section -->
+            <div class="profile-pic-container">
+                <img 
+                    src="https://placehold.co/80x80/6a1a8c/ffffff/png?text=Profile" 
+                    alt="Profile Picture" 
+                    class="profile-pic"
+                    onerror="this.onerror=null; this.src='https://placehold.co/80x80/6a1a8c/ffffff/png?text=P+Pic';"
+                >
+                <!-- NOTE: Replace the src above with your actual GitHub link to profile.png. -->
+                <!-- Example: src="https://raw.githubusercontent.com/your-username/your-repo/main/profile.png" -->
+            </div>
+            
+            <p>Noa Lavi</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h2>Stars</h2>
+                <p id="stars-count">0</p>
+                <div class="stat-icon">
+                    <!-- Standard Font Awesome Star -->
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h2>Unicorns</h2>
+                <p id="unicorns-count">0</p>
+                <div class="stat-icon">
+                    <!-- GitHub Hosted Unicorn GIF -->
+                    <img 
+                        src="https://placehold.co/40x40/f9f9f9/555555/gif?text=UNICORN" 
+                        alt="Unicorn Icon"
+                        onerror="this.onerror=null; this.src='https://placehold.co/40x40/f9f9f9/555555/gif?text=U';"
+                    >
+                    <!-- NOTE: Replace the src above with your actual GitHub link to unicorn.gif. -->
+                    <!-- Example: src="https://raw.githubusercontent.com/your-username/your-repo/main/unicorn.gif" -->
+                </div>
+            </div>
+            <div class="stat-card">
+                <h2>Streak</h2>
+                <p id="streak-count">0</p>
+                <div class="stat-icon">
+                    <!-- GitHub Hosted Streak JPG -->
+                    <img 
+                        src="https://placehold.co/40x40/f9f9f9/555555/jpg?text=STREAK" 
+                        alt="Streak Icon"
+                        onerror="this.onerror=null; this.src='https://placehold.co/40x40/f9f9f9/555555/jpg?text=S';"
+                    >
+                    <!-- NOTE: Replace the src above with your actual GitHub link to streak.jpg. -->
+                    <!-- Example: src="https://raw.githubusercontent.com/your-username/your-repo/main/streak.jpg" -->
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-header">
+            <button id="prev-month-btn" aria-label="Previous Month"><i class="fas fa-chevron-left"></i></button>
+            <h2 class="calendar-month-year" id="current-month-year"></h2>
+            <button id="next-month-btn" aria-label="Next Month"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="calendar-view" id="calendar">
+            <!-- Week cards will be inserted here by JavaScript -->
+        </div>
+
+        <p class="v-text">v3.0.0</p>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h2>Stars</h2>
-        <p id="stars-count">0</p>
-        <div class="stat-icon"><i class="fas fa-star"></i></div>
-      </div>
-      <div class="stat-card">
-        <h2>Unicorns</h2>
-        <p id="unicorns-count">0</p>
-        <div class="stat-icon"><img src="https://placehold.co/40x40/gif?text=UNICORN" alt="Unicorn Icon"></div>
-      </div>
-      <div class="stat-card">
-        <h2>Streak</h2>
-        <p id="streak-count">0</p>
-        <div class="stat-icon"><img src="https://placehold.co/40x40/jpg?text=STREAK" alt="Streak Icon"></div>
-      </div>
+    <!-- Overlay for status selection -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <button class="close-btn" id="close-overlay-btn"><i class="fas fa-times"></i></button>
+            <h2 id="overlay-week-title" class="text-xl font-bold mb-4"></h2>
+            <h3 class="text-md font-semibold mb-3 text-gray-700">Select status for the week:</h3>
+            
+            <button class="btn-status complete" data-status="complete">Complete (1 Star)</button>
+            
+            <div id="bonus-stars-container" style="display: none; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid #eee;">
+                <h3 class="text-md font-semibold mb-2 mt-2 text-gray-700">Add Bonus Stars (up to 5):</h3>
+                <div id="bonus-stars-picker">
+                    <!-- Stars inserted by JS -->
+                </div>
+                <button id="confirm-bonus-btn" class="btn-status" style="margin-top: 1rem;">Confirm Status</button>
+            </div>
+            
+            <button class="btn-status partial" data-status="partial">Partial (0.5 Stars)</button>
+            <button class="btn-status nothing-done" data-status="nothing-done">Nothing Done (0 Stars)</button>
+            <button class="btn-status none" data-status="none">No Homework (0 Stars)</button>
+        </div>
     </div>
 
-    <div class="calendar-header">
-      <button id="prev-month-btn"><i class="fas fa-chevron-left"></i></button>
-      <h2 class="calendar-month-year" id="current-month-year"></h2>
-      <button id="next-month-btn"><i class="fas fa-chevron-right"></i></button>
-    </div>
+    <!-- Mandatory Firebase SDKs (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, setLogLevel, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <div class="calendar-view" id="calendar"></div>
-    <p class="v-text">v3.0.0</p>
-  </div>
+        // ===================================
+        // 1. GLOBAL STATE AND FIREBASE SETUP VARIABLES
+        // ===================================
 
-  <div class="overlay" id="overlay">
-    <div class="overlay-content">
-      <button class="close-btn" id="close-overlay-btn"><i class="fas fa-times"></i></button>
-      <h2 id="overlay-week-title"></h2>
-      <h3>Select status for the week:</h3>
-      <button class="btn-status complete" data-status="complete">Complete (1 Star)</button>
-      <div id="bonus-stars-container" style="display:none;">
-        <h3>Add Bonus Stars (up to 5):</h3>
-        <div id="bonus-stars-picker"></div>
-        <button id="confirm-bonus-btn" class="btn-status">Confirm Status</button>
-      </div>
-      <button class="btn-status partial" data-status="partial">Partial (0.5 Stars)</button>
-      <button class="btn-status nothing-done" data-status="nothing-done">Nothing Done (0 Stars)</button>
-      <button class="btn-status none" data-status="none">No Homework (0 Stars)</button>
-    </div>
-  </div>
+        let db = null;
+        let auth = null;
+        let trackerRef = null;
+        let isFirebaseReady = false;
+        let userId = null; // Store the authenticated user's ID
 
-  <!-- Firebase Config -->
-  <script>
-    window.__firebase_config = {
-      apiKey: "AIzaSyBwrlKg85VJZg9hM2DLAO0hDxHVDCOEkLk",
-      authDomain: "noa-tracker-53101.firebaseapp.com",
-      projectId: "noa-tracker-53101",
-      storageBucket: "noa-tracker-53101.firebasestorage.app",
-      messagingSenderId: "211482683453",
-      appId: "1:211482683453:web:08ebab0f03ab2158c3e254",
-      measurementId: "G-V5SBKP6CVD"
-    };
-    window.__app_id = "global-tracker";
-  </script>
+        // Use the global configuration provided by the environment
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Start date used for calculating week numbers (Monday, 2025-09-08)
+        const START_DATE_RAW = new Date('2025-09-08'); 
+        START_DATE_RAW.setHours(0, 0, 0, 0); // Ensure consistent start time
+        const START_DATE = START_DATE_RAW;
 
-    let db, trackerRef, isFirebaseReady = false, data = {};
-    const START_DATE = new Date('2025-09-08');
-    START_DATE.setHours(0,0,0,0);
-    let currentDate = new Date(); currentDate.setDate(1);
-    let currentWeekData = {};
+        // FIX: Start with the actual current month, not the hardcoded start date
+        let currentDate = new Date(); 
+        currentDate.setDate(1); // Set to the 1st of the month for proper calendar rendering
+        
+        let currentWeekData = {};
+        let data = {}; 
 
-    const calendar = document.getElementById('calendar');
-    const currentMonthYear = document.getElementById('current-month-year');
-    const prevMonthBtn = document.getElementById('prev-month-btn');
-    const nextMonthBtn = document.getElementById('next-month-btn');
-    const overlay = document.getElementById('overlay');
-    const overlayWeekTitle = document.getElementById('overlay-week-title');
-    const closeOverlayBtn = document.getElementById('close-overlay-btn');
-    const statusButtons = document.querySelectorAll('.btn-status:not(#confirm-bonus-btn)');
-    const starsCountElem = document.getElementById('stars-count');
-    const unicornsCountElem = document.getElementById('unicorns-count');
-    const streakCountElem = document.getElementById('streak-count');
-    const bonusStarsContainer = document.getElementById('bonus-stars-container');
-    const bonusStarsPicker = document.getElementById('bonus-stars-picker');
-    const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
+        // ===================================
+        // 2. DOM ELEMENTS AND INITIALIZATION
+        // ===================================
+        const calendar = document.getElementById('calendar');
+        const currentMonthYear = document.getElementById('current-month-year');
+        const prevMonthBtn = document.getElementById('prev-month-btn');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const overlay = document.getElementById('overlay');
+        const overlayWeekTitle = document.getElementById('overlay-week-title');
+        const closeOverlayBtn = document.getElementById('close-overlay-btn');
+        const statusButtons = document.querySelectorAll('.btn-status:not(#confirm-bonus-btn)'); 
+        const starsCountElem = document.getElementById('stars-count');
+        const unicornsCountElem = document.getElementById('unicorns-count');
+        const streakCountElem = document.getElementById('streak-count');
+        const bonusStarsContainer = document.getElementById('bonus-stars-container');
+        const bonusStarsPicker = document.getElementById('bonus-stars-picker');
+        const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
 
-    function listenForData() {
-      if (!isFirebaseReady || !trackerRef) return;
-      onSnapshot(trackerRef, (docSnap) => {
-        data = docSnap.exists() ? docSnap.data().weeks || {} : {};
-        updateStats();
+        // ===================================
+        // 3. CORE FUNCTIONS (LOAD/SAVE/RENDER)
+        // ===================================
+
+        /**
+         * Listens to the Firestore document in real-time and updates the UI.
+         * This replaces the old loadData() function.
+         */
+        function listenForData() {
+            if (!isFirebaseReady || !trackerRef) return;
+
+            // Use onSnapshot for real-time updates on the single document reference (trackerRef)
+            onSnapshot(trackerRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    // The document stores an object under the 'weeks' key
+                    data = docSnap.data().weeks || {}; 
+                    console.log("Real-time data update received.");
+                } else {
+                    console.log("Tracker document does not exist, initializing local data.");
+                    data = {};
+                }
+                // Always re-render and update stats upon receiving data
+                updateStats(); 
+                renderCalendar();
+            }, (error) => {
+                console.error("Error listening to Firestore:", error);
+            });
+        }
+
+
+        /**
+         * Saves the entire 'data' object to Firestore.
+         * Note: The UI update is now handled by the onSnapshot listener above.
+         */
+        async function saveData() {
+            if (!isFirebaseReady) {
+                console.warn("Firebase not initialized. Data cannot be saved.");
+                updateStats(); // Fallback: Update UI locally if persistence is disabled
+                renderCalendar(); // Fallback: Update UI locally if persistence is disabled
+                return;
+            }
+
+            try {
+                // Use .set() with { merge: true } to save the entire 'data' object under the 'weeks' field
+                // If the document doesn't exist, it will be created.
+                await setDoc(trackerRef, { weeks: data }, { merge: true });
+                console.log("Data saved to Firestore successfully (via setDoc).");
+            } catch (error) {
+                console.error("Error saving data to Firestore:", error);
+            }
+            // IMPORTANT: The calls to updateStats() and renderCalendar() have been removed here.
+            // They are now triggered automatically by the 'onSnapshot' listener (listenForData).
+        }
+
+
+        function generateBonusStars() {
+            bonusStarsPicker.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.classList.add('fas', 'fa-star');
+                star.dataset.value = i;
+                star.addEventListener('click', () => {
+                    const value = parseInt(star.dataset.value);
+                    const allStars = document.querySelectorAll('#bonus-stars-picker .fas.fa-star');
+                    
+                    // Logic to activate stars up to the clicked one
+                    allStars.forEach(s => s.classList.remove('active'));
+                    let currentStar = star;
+                    while(currentStar) {
+                        currentStar.classList.add('active');
+                        currentStar = currentStar.previousElementSibling;
+                    }
+
+                });
+                bonusStarsPicker.appendChild(star);
+            }
+        }
+
+        generateBonusStars();
+
+        function updateStats() {
+            let stars_total = 0;
+            let streak_current = 0;
+            // Variable to track if the current day has passed 'today' for the streak calculation
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Get all week start keys and sort them chronologically
+            const sortedWeekKeys = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
+
+            sortedWeekKeys.forEach(weekStartString => {
+                const weekStartDate = new Date(weekStartString);
+                const weekEndDate = new Date(weekStartDate);
+                weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+                const week = data[weekStartString];
+                const status = week.status;
+                
+                // Only count weeks that have passed or are the current week (to prevent forecasting streak)
+                if (weekEndDate.getTime() < today.getTime()) {
+                    if (status === 'complete') {
+                        stars_total += 1 + (week.bonusStars || 0);
+                        streak_current++;
+                    } else if (status === 'partial') {
+                        stars_total += 0.5;
+                        streak_current++;
+                    } else if (status === 'nothing-done') {
+                        streak_current = 0; // Streak broken
+                    }
+                    // 'none' status (No Homework) maintains streak, so no action needed on streak_current
+                } else {
+                    // Stop streak calculation once we hit the current week or a future week
+                    if (status === 'complete') {
+                        stars_total += 1 + (week.bonusStars || 0);
+                        // Do not increase streak for the current or future incomplete week
+                    } else if (status === 'partial') {
+                        stars_total += 0.5;
+                        // Do not increase streak
+                    } else if (status === 'nothing-done') {
+                        streak_current = 0; // Streak broken on the current incomplete week
+                    }
+                }
+            });
+
+
+            const unicorns = Math.floor(stars_total / 4);
+            starsCountElem.textContent = stars_total % 1 === 0 ? stars_total.toString() : stars_total.toFixed(1);
+            unicornsCountElem.textContent = unicorns;
+            streakCountElem.textContent = streak_current;
+        }
+
+        function renderCalendar() {
+            console.log("Rendering calendar structure..."); // Debug log
+            calendar.innerHTML = '';
+            
+            // Set the start date to the beginning of the *current month's* view (usually the Monday before the 1st)
+            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            
+            const day = firstDayOfMonth.getDay(); // 0 (Sun) to 6 (Sat)
+            const diff = day === 1 ? 0 : (day === 0 ? 6 : day - 1); // diff to Monday
+            const startOfView = new Date(firstDayOfMonth);
+            startOfView.setDate(firstDayOfMonth.getDate() - diff);
+            startOfView.setHours(0, 0, 0, 0); // Normalize time
+
+            
+            // Calculate the base week number based on the START_DATE (2025-09-08, Week 1)
+            const timeDiff = startOfView.getTime() - START_DATE.getTime();
+            const daysSinceStart = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
+            // Ensure division by 7 is calculated correctly for weeks
+            const baseWeekNumber = Math.max(0, Math.floor(daysSinceStart / 7)) + 1; 
+
+            // Render 5 weeks to cover the month view
+            for (let i = 0; i < 5; i++) {
+                const weekStartDate = new Date(startOfView);
+                weekStartDate.setDate(startOfView.getDate() + i * 7);
+
+                const weekEndDate = new Date(weekStartDate);
+                weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+                const weekStartString = weekStartDate.toISOString().split('T')[0];
+                const weekData = data[weekStartString] || { status: 'unmarked' };
+                
+                const weekCard = document.createElement('div');
+                weekCard.classList.add('week-card', `status-${weekData.status}`);
+                
+                const weekNumber = baseWeekNumber + i;
+
+                // Format: M/D - M/D or M/D - D
+                let dateRange;
+                const startMonth = weekStartDate.getMonth() + 1;
+                const endMonth = weekEndDate.getMonth() + 1;
+                
+                if (startMonth === endMonth) {
+                     dateRange = `${startMonth}/${weekStartDate.getDate()} - ${weekEndDate.getDate()}`;
+                } else {
+                    dateRange = `${startMonth}/${weekStartDate.getDate()} - ${endMonth}/${weekEndDate.getDate()}`;
+                }
+
+
+                weekCard.innerHTML = `
+                    <h3>Week ${weekNumber}</h3>
+                    <p>${dateRange}</p>
+                `;
+
+                weekCard.addEventListener('click', () => {
+                    currentWeekData = {
+                        weekStart: weekStartString,
+                        element: weekCard
+                    };
+                    showOverlay(weekStartString, weekNumber);
+                });
+
+                calendar.appendChild(weekCard);
+            }
+            
+            // Render the month and year
+            currentMonthYear.textContent = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            // Logic to disable prev button if we are at the earliest month
+            const isStartMonth = currentDate.getMonth() === START_DATE.getMonth() && currentDate.getFullYear() === START_DATE.getFullYear();
+            prevMonthBtn.disabled = isStartMonth;
+
+        }
+
+        function showOverlay(weekStart, weekNumber) {
+            overlayWeekTitle.textContent = `Week #${weekNumber}`;
+            
+            // Reset state
+            statusButtons.forEach(button => button.classList.remove('active'));
+            bonusStarsContainer.style.display = 'none';
+            document.querySelectorAll('#bonus-stars-picker .fas.fa-star').forEach(s => s.classList.remove('active'));
+
+            const weekData = data[weekStart];
+            if (weekData) {
+                const activeBtn = document.querySelector(`.btn-status[data-status="${weekData.status}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+
+                if (weekData.status === 'complete') {
+                    // Pre-select bonus stars if already saved
+                    bonusStarsContainer.style.display = 'block';
+                    if (weekData.bonusStars) {
+                        for (let i = 1; i <= weekData.bonusStars; i++) {
+                            const star = document.querySelector(`#bonus-stars-picker .fas.fa-star[data-value="${i}"]`);
+                            if (star) {
+                                star.classList.add('active');
+                            }
+                        }
+                    } else {
+                        // If status is complete but no bonus stars saved, default to 1 star selected for good UX
+                        document.querySelector(`#bonus-stars-picker .fas.fa-star[data-value="1"]`)?.classList.add('active');
+                    }
+                }
+            }
+
+            overlay.classList.add('visible');
+        }
+
+        // ===================================
+        // 4. EVENT LISTENERS
+        // ===================================
+
+        statusButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const status = button.dataset.status;
+                const isAlreadyActive = button.classList.contains('active');
+                
+                document.querySelectorAll('.btn-status').forEach(b => b.classList.remove('active'));
+                
+                if (status === 'complete') {
+                    // Show bonus stars picker and mark the button active
+                    button.classList.add('active');
+                    bonusStarsContainer.style.display = 'block';
+                    
+                    // If switching to complete, auto-select 1 star
+                    document.querySelectorAll('#bonus-stars-picker .fas.fa-star').forEach(s => s.classList.remove('active'));
+                    document.querySelector(`#bonus-stars-picker .fas.fa-star[data-value="1"]`)?.classList.add('active');
+                    
+                    return; // Wait for confirmation
+                }
+
+                bonusStarsContainer.style.display = 'none'; // Hide picker for non-complete statuses
+
+                if (isAlreadyActive) {
+                    // Clicking an active button removes the status (deletes the data point)
+                    delete data[currentWeekData.weekStart];
+                } else {
+                    // For other statuses (partial, nothing-done, none), set status and save
+                    button.classList.add('active');
+                    data[currentWeekData.weekStart] = { status: status };
+                }
+                
+                saveData();
+                overlay.classList.remove('visible');
+            });
+        });
+
+        confirmBonusBtn.addEventListener('click', () => {
+            if (currentWeekData.weekStart) {
+                const selectedBonusStarsCount = document.querySelectorAll('#bonus-stars-picker .fas.fa-star.active').length;
+                
+                // Set the status and the selected bonus stars
+                data[currentWeekData.weekStart] = { status: 'complete', bonusStars: selectedBonusStarsCount };
+                
+                saveData();
+                overlay.classList.remove('visible');
+            }
+        });
+
+        closeOverlayBtn.addEventListener('click', () => {
+            overlay.classList.remove('visible');
+        });
+
+        prevMonthBtn.addEventListener('click', () => {
+            // Check if we are at the start month
+            const currentMonth = currentDate.getMonth();
+            const startMonth = START_DATE.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const startYear = START_DATE.getFullYear();
+
+            if (currentYear > startYear || (currentYear === startYear && currentMonth > startMonth)) {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            } else {
+                console.log("Cannot go before the start date.");
+            }
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        // ===================================
+        // 5. INITIALIZATION SEQUENCE
+        // ===================================
+        
+        // ** RENDER THE CALENDAR IMMEDIATELY **
         renderCalendar();
-      });
-    }
 
-    async function saveData() {
-      if (!isFirebaseReady) return;
-      await setDoc(trackerRef, { weeks: data }, { merge: true });
-    }
+        /**
+         * The standard function to start Firebase services, handle authentication, 
+         * and set up the user-specific, real-time data listener.
+         */
+        function startFirebaseServices() {
+            try {
+                // 1. Initialize Firebase services
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug');
+                
+                // 2. Initial Sign-in Attempt
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (initialAuthToken) {
+                    signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                        console.error("Custom token sign-in failed, trying anonymous.", e);
+                        signInAnonymously(auth);
+                    });
+                } else {
+                    signInAnonymously(auth);
+                }
 
-    function updateStats() {
-      let stars_total = 0, streak_current = 0;
-      const today = new Date(); today.setHours(0,0,0,0);
-      const sorted = Object.keys(data).sort((a,b)=>new Date(a)-new Date(b));
-      sorted.forEach(k=>{
-        const week=data[k], status=week.status;
-        if(status==='complete'){stars_total+=1+(week.bonusStars||0);streak_current++;}
-        else if(status==='partial'){stars_total+=0.5;streak_current++;}
-        else if(status==='nothing-done'){streak_current=0;}
-      });
-      const unicorns=Math.floor(stars_total/4);
-      starsCountElem.textContent = stars_total % 1===0?stars_total:stars_total.toFixed(1);
-      unicornsCountElem.textContent=unicorns;
-      streakCountElem.textContent=streak_current;
-    }
+                // 3. Auth State Listener (Crucial for getting the UID and setting up the path)
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        
+                        // Set PRIVATE USER DATA PATH: 
+                        // artifacts/{appId}/users/{userId}/tracker_data
+                        // The document ID is 'weeks' because the content is structured around weeks.
+                        trackerRef = doc(db, `artifacts/${appId}/users/${userId}/tracker_data/weeks`);
+                        isFirebaseReady = true;
+                        
+                        console.log(`Authenticated as User: ${userId}. Starting data listener.`);
+                        
+                        // Start real-time listener (the new data loading approach)
+                        listenForData(); 
+                    } else {
+                        isFirebaseReady = false;
+                        userId = null;
+                        console.log("Not authenticated. Application running locally.");
+                        // Fallback: If auth fails, ensure stats are calculated based on empty local data
+                        updateStats(); 
+                        renderCalendar();
+                    }
+                });
+            } catch (error) {
+                console.error("CRITICAL FIREBASE INITIALIZATION ERROR: Data persistence is disabled.", error.message);
+                isFirebaseReady = false;
+                updateStats(); // Fallback to local rendering
+            }
+        }
+        
+        startFirebaseServices();
 
-    function renderCalendar() {
-      calendar.innerHTML='';
-      const firstDay=new Date(currentDate.getFullYear(),currentDate.getMonth(),1);
-      const day=firstDay.getDay();
-      const diff=day===1?0:(day===0?6:day-1);
-      const startOfView=new Date(firstDay);startOfView.setDate(firstDay.getDate()-diff);
-      startOfView.setHours(0,0,0,0);
-      const baseWeekNumber=Math.max(0,Math.floor((startOfView-START_DATE)/(7*86400000)))+1;
-      for(let i=0;i<5;i++){
-        const weekStart=new Date(startOfView);weekStart.setDate(startOfView.getDate()+i*7);
-        const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
-        const weekKey=weekStart.toISOString().split('T')[0];
-        const week=data[weekKey]||{status:'unmarked'};
-        const card=document.createElement('div');
-        card.classList.add('week-card',`status-${week.status}`);
-        const weekNum=baseWeekNumber+i;
-        const range=`${weekStart.getMonth()+1}/${weekStart.getDate()} - ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
-        card.innerHTML=`<h3>Week ${weekNum}</h3><p>${range}</p>`;
-        card.onclick=()=>{currentWeekData={weekStart:weekKey};showOverlay(weekKey,weekNum);};
-        calendar.appendChild(card);
-      }
-      currentMonthYear.textContent=currentDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    }
-
-   
+    </script>
+</body>
+</html>
