@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Homework Tracker</title>
-    <!-- Load Inter font for clean look -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Load Font Awesome for icons (still needed for the Star) -->
+    <link href="https://fonts.googleapis.com/css2?family=Atma:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* --- CUSTOM STYLES TO MATCH ORIGINAL DESIGN --- */
@@ -35,16 +34,25 @@
             background-size: 40px 40px;
         }
 
+        /* --- LAYOUT FIX: MOBILE FIRST (Narrower and Shorter) --- */
         .container {
             width: 100%;
-            max-width: 600px;
-            padding: 2.5rem 2rem;
+            max-width: 450px; /* Narrower for mobile/small screens */
+            padding: 1.5rem 1rem; /* Shorter (less vertical space) for mobile */
             background-color: var(--card-bg);
             border-radius: 2rem;
             border: 4px solid var(--orange);
             box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 0 0 0 10px rgba(255, 140, 67, 0.1);
         }
 
+        /* --- LAYOUT FIX: DESKTOP (Wider Box, 6 Cards) --- */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 850px; /* Wider box for desktop */
+                padding: 2.5rem 3rem; /* Adjusted padding for better height/width aspect */
+            }
+        }
+        
         /* Header Styling */
         .header {
             text-align: center;
@@ -80,14 +88,20 @@
         /* Stats Grid */
         .stats-grid {
             display: flex;
-            justify-content: space-between;
-            gap: 1rem;
+            /* Changed to space-around for visual balance with narrow cards */
+            justify-content: space-around;
+            gap: 0.5rem;
             margin-bottom: 2.5rem;
         }
+        
+        /* Stat Card - Doubled in size */
         .stat-card {
-            flex: 1;
+            /* Set explicit width to make them narrow and control squarish look */
+            flex: 0 0 30%; 
+            max-width: 200px; /* DOUBLED from 100px */
+            
             background-color: var(--card-bg);
-            padding: 1rem 0.5rem;
+            padding: 1rem 0.4rem; /* DOUBLED from 0.5rem 0.2rem */
             border-radius: 1rem;
             text-align: center;
             border: 1px solid #eee;
@@ -98,36 +112,39 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
-        /* Stat Title Styling - Updated (Purple) */
-        .stat-card h2 {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--purple); 
-        }
+        
+        /* Number - Adjusted size and weight and NEW FONT */
         .stat-card p {
-            font-size: 2.5rem;
-            font-weight: 900;
+            font-family: 'Atma', cursive; /* APPLIED NEW FONT */
+            font-size: 4.8rem; /* Reduced by 20% from 6.0rem */
+            font-weight: 700; /* Thinner font weight (700 instead of 900) */
             color: var(--purple);
             line-height: 1.1;
+            margin-top: 1.6rem; 
+            margin-bottom: 0; 
         }
+        
+        /* Icon Container - Doubled in size */
         .stat-icon {
             /* Ensures container for the icon/image is styled */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 2.4rem; /* Icon/Image container height */
-            margin-top: 0.25rem;
+            height: 4.0rem; /* DOUBLED from 2.0rem */
+            margin-top: 0; 
+            margin-bottom: 0; 
         }
-        /* Image/Icon Styling for Stats */
+        
+        /* Image/Icon Styling for Stats - Doubled in size */
         .stat-icon img {
-            width: 2.4rem; /* Icon/Image size */
-            height: 2.4rem;
+            width: 4.8rem; /* DOUBLED from 2.4rem */
+            height: 4.8rem; /* DOUBLED from 2.4rem */
             object-fit: contain; /* Prevents stretching */
         }
-        /* Specific Icon Colors and Size for Font Awesome (Star) */
+        /* Specific Icon Colors and Size for Font Awesome (Star) - Doubled in size */
         #stars-count + .stat-icon i { 
             color: var(--yellow-star); 
-            font-size: 2.4rem; /* Star icon size (decreased by 33%) */
+            font-size: 4.8rem; /* DOUBLED from 2.4rem */
         }
 
 
@@ -176,22 +193,35 @@
             justify-content: flex-start;
             gap: 0.75rem;
             padding-bottom: 3rem;
-            overflow-x: auto; /* Enables horizontal scrolling */
+            overflow-x: auto; /* Enables horizontal scrolling on mobile */
             -webkit-overflow-scrolling: touch; /* Smoother scrolling on touch devices */
         }
         .week-card {
-            width: 100px; /* Fixed width for consistent look in one row */
+            width: 100px; /* Mobile width */
             flex-shrink: 0; /* Prevents cards from shrinking */
-            /* CRITICAL FIX: Increased vertical padding to guarantee visibility */
             padding: 1.0rem 0.75rem; 
             border-radius: 0.75rem;
             text-align: center;
             cursor: pointer;
-            /* Border is 4px */
             border: 4px solid transparent; 
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             transition: all 0.2s;
         }
+        
+        /* NEW: Force 6 cards to show on desktop without scrolling */
+        @media (min-width: 768px) {
+            .calendar-view {
+                justify-content: space-between; /* Spread them out */
+                gap: 1rem; /* Adjust gap for better desktop spacing */
+                overflow-x: hidden; /* Hide scrollbar when wide enough */
+            }
+            .week-card {
+                /* Calculation for 6 items with 1rem (16px) gap: (100% - 5 * 16px) / 6 cards */
+                width: calc((100% - 5rem) / 6);
+                padding: 1.5rem 0.5rem; /* Taller padding for desktop aspect */
+            }
+        }
+
         .week-card:hover {
             opacity: 0.9;
             transform: translateY(-1px);
@@ -307,10 +337,12 @@
         
         .btn-status:not(.active):hover { opacity: 0.9; }
 
+        /* Change confirm button color to black */
         #confirm-bonus-btn {
-            background-color: var(--orange);
+            background-color: black;
             color: white;
         }
+        
         /* Bonus Stars Picker */
         #bonus-stars-picker {
             display: flex;
@@ -342,7 +374,6 @@
         <div class="header">
             <h1>Weekly Homework Tracker</h1>
             
-            <!-- Profile Picture Section -->
             <div class="profile-pic-container">
                 <img 
                     src="https://placehold.co/80x80/6a1a8c/ffffff/png?text=Profile" 
@@ -350,49 +381,37 @@
                     class="profile-pic"
                     onerror="this.onerror=null; this.src='https://placehold.co/80x80/6a1a8c/ffffff/png?text=P+Pic';"
                 >
-                <!-- NOTE: Replace the src above with your actual GitHub link to profile.png. -->
-                <!-- Example: src="https://raw.githubusercontent.com/your-username/your-repo/main/profile.png" -->
-            </div>
+                </div>
             
             <p>Noa Lavi</p>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <h2>Stars</h2>
-                <p id="stars-count">0</p>
                 <div class="stat-icon">
-                    <!-- Standard Font Awesome Star -->
                     <i class="fas fa-star"></i>
                 </div>
+                <p id="stars-count">0</p>
             </div>
             <div class="stat-card">
-                <h2>Unicorns</h2>
-                <p id="unicorns-count">0</p>
                 <div class="stat-icon">
-                    <!-- GitHub Hosted Unicorn GIF -->
                     <img 
                         src="https://placehold.co/40x40/f9f9f9/555555/gif?text=UNICORN" 
                         alt="Unicorn Icon"
                         onerror="this.onerror=null; this.src='https://placehold.co/40x40/f9f9f9/555555/gif?text=U';"
                     >
-                    <!-- NOTE: Replace the src above with your actual GitHub link to unicorn.gif. -->
-                    <!-- Example: src="https://raw.githubusercontent.com/your-username/your-repo/main/unicorn.gif" -->
-                </div>
+                    </div>
+                <p id="unicorns-count">0</p>
             </div>
             <div class="stat-card">
-                <h2>Streak</h2>
-                <p id="streak-count">0</p>
                 <div class="stat-icon">
-                    <!-- GitHub Hosted Streak JPG -->
                     <img 
                         src="https://placehold.co/40x40/f9f9f9/555555/jpg?text=STREAK" 
                         alt="Streak Icon"
                         onerror="this.onerror=null; this.src='https://placehold.co/40x40/f9f9f9/555555/jpg?text=S';"
                     >
-                    <!-- NOTE: Replace the src above with your actual GitHub link to streak.jpg. -->
-                    <!-- Example: src="https://raw.githubusercontent.com/your-username/your-repo/main/streak.jpg" -->
-                </div>
+                    </div>
+                <p id="streak-count">0</p>
             </div>
         </div>
 
@@ -403,13 +422,11 @@
         </div>
 
         <div class="calendar-view" id="calendar">
-            <!-- Week cards will be inserted here by JavaScript -->
-        </div>
+            </div>
 
         <p class="v-text">v3.0.0</p>
     </div>
 
-    <!-- Overlay for status selection -->
     <div class="overlay" id="overlay">
         <div class="overlay-content">
             <button class="close-btn" id="close-overlay-btn"><i class="fas fa-times"></i></button>
@@ -418,13 +435,14 @@
             
             <button class="btn-status complete" data-status="complete">Complete (1 Star)</button>
             
-            <div id="bonus-stars-container" style="display: none; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid #eee;">
+            <div id="bonus-stars-container" style="display: none; margin-top: 1rem; padding-top: 0.5rem;">
                 <h3 class="text-md font-semibold mb-2 mt-2 text-gray-700">Add Bonus Stars (up to 5):</h3>
                 <div id="bonus-stars-picker">
-                    <!-- Stars inserted by JS -->
-                </div>
+                    </div>
                 <button id="confirm-bonus-btn" class="btn-status" style="margin-top: 1rem;">Confirm Status</button>
             </div>
+
+            <div style="border-top: 1px solid #eee; margin: 1.5rem 0;"></div>
             
             <button class="btn-status partial" data-status="partial">Partial (0.5 Stars)</button>
             <button class="btn-status nothing-done" data-status="nothing-done">Nothing Done (0 Stars)</button>
@@ -433,6 +451,7 @@
     </div>
 
 <script>
+  // NOTE: Assuming the previous Firebase configuration fix (removed extra quote and added comma) is applied externally.
   window.__firebase_config = {
     apiKey: "AIzaSyBwrlKg85VJZg9hM2DLAO0hDxHVDCOEkLk",
     authDomain: "noa-tracker-53101.firebaseapp.com",
@@ -446,7 +465,6 @@
 </script>
 
     
-    <!-- Mandatory Firebase SDKs (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -463,7 +481,7 @@
         let userId = null; // Store the authenticated user's ID
 
         // Use the global configuration provided by the environment
-        const firebaseConfig = window.__firebase_config;
+        const firebaseConfig = window.__firebase_config; // FIX: Direct access to object
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         // Start date used for calculating week numbers (Monday, 2025-09-08)
@@ -557,16 +575,27 @@
                 const star = document.createElement('i');
                 star.classList.add('fas', 'fa-star');
                 star.dataset.value = i;
+                
+                // FIX: Updated logic to allow unchecking the currently selected star (setting bonus to 0)
                 star.addEventListener('click', () => {
                     const value = parseInt(star.dataset.value);
                     const allStars = document.querySelectorAll('#bonus-stars-picker .fas.fa-star');
                     
-                    // Logic to activate stars up to the clicked one
-                    allStars.forEach(s => s.classList.remove('active'));
-                    let currentStar = star;
-                    while(currentStar) {
-                        currentStar.classList.add('active');
-                        currentStar = currentStar.previousElementSibling;
+                    // Get the current number of active stars
+                    const currentlyActiveCount = Array.from(allStars).filter(s => s.classList.contains('active')).length;
+
+                    // If the clicked star's value is the current active count, it means the user is clicking
+                    // to clear the rating (set to 0).
+                    if (value === currentlyActiveCount) {
+                        allStars.forEach(s => s.classList.remove('active'));
+                    } else {
+                        // Otherwise, set the active stars up to the clicked value (standard rating logic).
+                        allStars.forEach(s => s.classList.remove('active'));
+                        let currentStar = star;
+                        while(currentStar) {
+                            currentStar.classList.add('active');
+                            currentStar = currentStar.previousElementSibling;
+                        }
                     }
 
                 });
@@ -647,8 +676,8 @@
             // Ensure division by 7 is calculated correctly for weeks
             const baseWeekNumber = Math.max(0, Math.floor(daysSinceStart / 7)) + 1; 
 
-            // Render 5 weeks to cover the month view
-            for (let i = 0; i < 5; i++) {
+            // RENDER FIX: Render 6 weeks to ensure 6 boxes are always visible on desktop
+            for (let i = 0; i < 6; i++) { 
                 const weekStartDate = new Date(startOfView);
                 weekStartDate.setDate(startOfView.getDate() + i * 7);
 
@@ -725,10 +754,7 @@
                                 star.classList.add('active');
                             }
                         }
-                    } else {
-                        // If status is complete but no bonus stars saved, default to 1 star selected for good UX
-                        document.querySelector(`#bonus-stars-picker .fas.fa-star[data-value="1"]`)?.classList.add('active');
-                    }
+                    } 
                 }
             }
 
@@ -751,9 +777,8 @@
                     button.classList.add('active');
                     bonusStarsContainer.style.display = 'block';
                     
-                    // If switching to complete, auto-select 1 star
+                    // FIX: Ensure all stars are unselected by default when switching to 'complete'
                     document.querySelectorAll('#bonus-stars-picker .fas.fa-star').forEach(s => s.classList.remove('active'));
-                    document.querySelector(`#bonus-stars-picker .fas.fa-star[data-value="1"]`)?.classList.add('active');
                     
                     return; // Wait for confirmation
                 }
@@ -847,6 +872,3 @@
     </script>
 </body>
 </html>
-
-
-
