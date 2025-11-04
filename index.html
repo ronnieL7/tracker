@@ -822,58 +822,30 @@
          * and set up the user-specific, real-time data listener.
          */
         function startFirebaseServices() {
-            try {
-                // 1. Initialize Firebase services
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                setLogLevel('Debug');
-                
-                // 2. Initial Sign-in Attempt
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                        console.error("Custom token sign-in failed, trying anonymous.", e);
-                        signInAnonymously(auth);
-                    });
-                } else {
-                    signInAnonymously(auth);
-                }
+  try {
+    // 1. Initialize Firebase services
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    setLogLevel('Debug');
+    
+    // 2. Use one shared document (no auth)
+    trackerRef = doc(db, 'shared_tracker', 'weeks');
+    isFirebaseReady = true;
 
-                // 3. Auth State Listener (Crucial for getting the UID and setting up the path)
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        
-                        // Set PRIVATE USER DATA PATH: 
-                        // artifacts/{appId}/users/{userId}/tracker_data
-                        // The document ID is 'weeks' because the content is structured around weeks.
-                        trackerRef = doc(db, `artifacts/${appId}/users/${userId}/tracker_data/weeks`);
-                        isFirebaseReady = true;
-                        
-                        console.log(`Authenticated as User: ${userId}. Starting data listener.`);
-                        
-                        // Start real-time listener (the new data loading approach)
-                        listenForData(); 
-                    } else {
-                        isFirebaseReady = false;
-                        userId = null;
-                        console.log("Not authenticated. Application running locally.");
-                        // Fallback: If auth fails, ensure stats are calculated based on empty local data
-                        updateStats(); 
-                        renderCalendar();
-                    }
-                });
-            } catch (error) {
-                console.error("CRITICAL FIREBASE INITIALIZATION ERROR: Data persistence is disabled.", error.message);
-                isFirebaseReady = false;
-                updateStats(); // Fallback to local rendering
-            }
-        }
+    // 3. Start listening for real-time updates
+    listenForData();
+    console.log("Connected to shared tracker document.");
+  } catch (error) {
+    console.error("Firebase init error:", error);
+    isFirebaseReady = false;
+    updateStats();
+  }
+}
         
         startFirebaseServices();
 
     </script>
 </body>
 </html>
+
 
