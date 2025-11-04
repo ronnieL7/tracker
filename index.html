@@ -141,7 +141,6 @@
             height: 4.8rem; /* DOUBLED from 2.4rem */
             object-fit: contain; /* Prevents stretching */
         }
-        /* REMOVED: Specific Icon Colors and Size for Font Awesome (Star) as it's now an IMG */
 
 
         /* Calendar Header (Month Navigation) */
@@ -356,6 +355,17 @@
         #bonus-stars-picker .fa-star.active {
             color: var(--yellow-star);
         }
+        
+        /* Style for the clear button (Now Grey) */
+        #clear-status-btn {
+            background-color: #cbd5e1; /* Light Grey */
+            color: #1f2937; /* Dark text for contrast */
+            margin-top: 1.5rem; /* Add extra spacing */
+        }
+        #clear-status-btn:hover {
+            background-color: #94a3b8; /* Slightly darker grey on hover */
+        }
+
         .v-text {
             text-align: center;
             margin-top: 2rem;
@@ -447,6 +457,8 @@
             <button class="btn-status partial" data-status="partial">Partial (0.5 Stars)</button>
             <button class="btn-status nothing-done" data-status="nothing-done">Nothing Done (0 Stars)</button>
             <button class="btn-status none" data-status="none">No Homework (0 Stars)</button>
+            
+            <button id="clear-status-btn" class="btn-status">Clear Status / Reset Week</button>
         </div>
     </div>
 
@@ -506,13 +518,16 @@
         const overlay = document.getElementById('overlay');
         const overlayWeekTitle = document.getElementById('overlay-week-title');
         const closeOverlayBtn = document.getElementById('close-overlay-btn');
-        const statusButtons = document.querySelectorAll('.btn-status:not(#confirm-bonus-btn)'); 
+        // FIX: Exclude the new clear button from the main status buttons
+        const statusButtons = document.querySelectorAll('.btn-status:not(#confirm-bonus-btn, #clear-status-btn)'); 
         const starsCountElem = document.getElementById('stars-count');
         const unicornsCountElem = document.getElementById('unicorns-count');
         const streakCountElem = document.getElementById('streak-count');
         const bonusStarsContainer = document.getElementById('bonus-stars-container');
         const bonusStarsPicker = document.getElementById('bonus-stars-picker');
         const confirmBonusBtn = document.getElementById('confirm-bonus-btn');
+        // NEW ELEMENT
+        const clearStatusBtn = document.getElementById('clear-status-btn'); 
 
         // ===================================
         // 3. CORE FUNCTIONS (LOAD/SAVE/RENDER)
@@ -736,6 +751,9 @@
             statusButtons.forEach(button => button.classList.remove('active'));
             bonusStarsContainer.style.display = 'none';
             document.querySelectorAll('#bonus-stars-picker .fas.fa-star').forEach(s => s.classList.remove('active'));
+            
+            // Ensure Clear button is visible
+            clearStatusBtn.style.display = 'block';
 
             const weekData = data[weekStart];
             if (weekData) {
@@ -764,6 +782,26 @@
         // ===================================
         // 4. EVENT LISTENERS
         // ===================================
+        
+        // Listener for the NEW Clear Button
+        clearStatusBtn.addEventListener('click', () => {
+            if (currentWeekData.weekStart) {
+                // Delete the entry for the current week from the data object
+                delete data[currentWeekData.weekStart];
+                
+                // Save the updated data (which now lacks the week entry)
+                saveData();
+                
+                // Force local re-render and stat update for immediate visual feedback
+                // This addresses the reported bug where the listener delays the update for deletes.
+                updateStats(); 
+                renderCalendar();
+
+                // Close the overlay
+                overlay.classList.remove('visible');
+            }
+        });
+
 
         statusButtons.forEach(button => {
             button.addEventListener('click', () => {
